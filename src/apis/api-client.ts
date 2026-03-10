@@ -2,11 +2,21 @@ import axios, {
   type AxiosError,
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
-} from 'axios';
-import { STORAGE_KEYS } from '@/lib/constants';
+} from "axios";
+import { STORAGE_KEYS } from "@/lib/constants";
+import type { PaginatedResponse } from "@/types";
+
+declare module "axios" {
+  interface AxiosRequestConfig {
+    _skipUnwrap?: boolean;
+  }
+  interface InternalAxiosRequestConfig {
+    _skipUnwrap?: boolean;
+  }
+}
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000",
   withCredentials: true,
 });
 
@@ -22,12 +32,22 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 // Response interceptor — unwrap server envelope { success, data, ... }
 apiClient.interceptors.response.use(
   (response) => {
-    if (response.data && 'success' in response.data && 'data' in response.data) {
+    if (
+      !response.config._skipUnwrap &&
+      response.data &&
+      "success" in response.data &&
+      "data" in response.data
+    ) {
       response.data = response.data.data;
     }
     return response;
   },
   async (error: AxiosError) => {
+    // Don't attempt token refresh if server is unreachable
+    if (!error.response) {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
@@ -35,7 +55,7 @@ apiClient.interceptors.response.use(
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
-      originalRequest.url?.includes('/auth/refresh')
+      originalRequest.url?.includes("/auth/refresh")
     ) {
       return Promise.reject(error);
     }
@@ -53,7 +73,7 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      const { data } = await apiClient.post('/auth/refresh');
+      const { data } = await apiClient.post("/auth/refresh");
       const newToken = data.accessToken;
       localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newToken);
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -62,7 +82,7 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError as AxiosError, null);
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-      window.location.href = '/sign-in';
+      window.location.href = "/sign-in";
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
@@ -89,7 +109,10 @@ function processQueue(error: AxiosError | null, token: string | null) {
 }
 
 // Typed helpers
-export function apiGet<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+export function apiGet<T>(
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<T> {
   return apiClient.get<T>(url, config).then((r) => r.data);
 }
 
@@ -109,8 +132,20 @@ export function apiPatch<T>(
   return apiClient.patch<T>(url, data, config).then((r) => r.data);
 }
 
-export function apiDelete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+export function apiDelete<T>(
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<T> {
   return apiClient.delete<T>(url, config).then((r) => r.data);
+}
+
+export function apiGetPaginated<T>(
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<PaginatedResponse<T>> {
+  return apiClient
+    .get(url, { ...config, _skipUnwrap: true })
+    .then((r) => ({ data: r.data.data, pagination: r.data.pagination }));
 }
 
 export default apiClient;

@@ -6,4 +6,7 @@ export const ROUTES = {
   SIGN_IN: '/sign-in',
   ONBOARDING: '/onboarding',
   DASHBOARD: '/dashboard',
+  TRANSACTIONS: '/transactions',
+  MESSAGES: '/messages',
+  API_KEYS: '/api-keys',
 } as const;

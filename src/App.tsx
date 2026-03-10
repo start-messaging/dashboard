@@ -10,6 +10,9 @@ import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { SignInPage } from '@/pages/signIn';
 import { OnboardingPage } from '@/pages/onboarding';
 import { DashboardPage } from '@/pages/dashboard';
+import { TransactionsPage } from '@/pages/transactions';
+import { ApiKeysPage } from '@/pages/api-keys';
+import { MessagesPage } from '@/pages/messages';
 import { ROUTES } from '@/lib/constants';
 
 export default function App() {
@@ -30,6 +33,9 @@ export default function App() {
         <Route element={<RequireOnboarding />}>
           <Route element={<DashboardLayout />}>
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+            <Route path={ROUTES.API_KEYS} element={<ApiKeysPage />} />
+            <Route path={ROUTES.TRANSACTIONS} element={<TransactionsPage />} />
+            <Route path={ROUTES.MESSAGES} element={<MessagesPage />} />
           </Route>
         </Route>
       </Route>

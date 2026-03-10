@@ -1,25 +1,52 @@
-import { Outlet } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
+import { Outlet } from "react-router-dom";
+import { Wallet } from "lucide-react";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { AddMoneyDialog } from "@/components/add-money-dialog";
+import { useWallet } from "@/hooks/useWallet";
+import { formatINR } from "@/lib/utils";
 
-export function DashboardLayout() {
-  const { logout } = useAuth();
+function WalletBadge() {
+  const { balance, isLoading } = useWallet();
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <span className="text-lg font-semibold">StartMessaging</span>
-          <Button variant="ghost" size="sm" onClick={logout}>
-            <LogOut className="size-4" />
-            <span className="hidden sm:inline">Sign out</span>
-          </Button>
-        </div>
-      </header>
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <Outlet />
-      </main>
+    <div className="flex items-center gap-1.5 text-sm">
+      <Wallet className="size-4 text-muted-foreground" />
+      {isLoading ? (
+        <Skeleton className="h-4 w-20" />
+      ) : (
+        <span className="font-medium">{formatINR(balance)}</span>
+      )}
     </div>
+  );
+}
+
+export function DashboardLayout() {
+  return (
+    <TooltipProvider>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-14 items-center gap-2 border-b px-4">
+            <SidebarTrigger />
+            <Separator orientation="vertical" className="h-4" />
+            <div className="ml-auto flex items-center gap-3">
+              <WalletBadge />
+              <AddMoneyDialog />
+            </div>
+          </header>
+          <div className="p-4 md:p-6">
+            <Outlet />
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }
