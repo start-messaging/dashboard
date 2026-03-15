@@ -55,6 +55,7 @@ export function MessagesPage() {
     checkStatus,
     isCheckingStatus,
     checkingStatusId,
+    status,
     setStatus,
     apiKeyId,
     setApiKeyId,
