@@ -30,6 +30,14 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/phone-input';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   countryByCode,
   countries,
   DEFAULT_COUNTRY_CODE,
@@ -388,11 +396,22 @@ function BusinessDetailsStep() {
     }
   };
 
+  const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+  const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+  const isNameValid = form.businessName.trim().length >= 3;
+  const isPanValid = PAN_REGEX.test(form.pan);
+  const isGstinValid = !form.gstin || GSTIN_REGEX.test(form.gstin);
+  const isAddressValid = form.businessAddress.trim().length >= 10;
+  const isWebsiteValid = !form.websiteUrl || form.websiteUrl.trim().length >= 5;
+
+
   const isValid =
-    form.businessName.trim() &&
-    form.pan.trim() &&
-    form.businessAddress.trim() &&
-    form.websiteUrl.trim() &&
+    isNameValid &&
+    isPanValid &&
+    isGstinValid &&
+    isAddressValid &&
+    isWebsiteValid &&
     file;
 
   return (
@@ -408,7 +427,11 @@ function BusinessDetailsStep() {
             placeholder="Acme Corp"
             value={form.businessName}
             onChange={(e) => handleChange('businessName', e.target.value)}
+            className={form.businessName && !isNameValid ? 'border-red-500' : ''}
           />
+          {form.businessName && !isNameValid && (
+            <p className="text-[10px] text-red-500 font-medium">Business Name must be at least 3 characters</p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -422,10 +445,15 @@ function BusinessDetailsStep() {
                 handleChange('pan', e.target.value.toUpperCase())
               }
               maxLength={10}
+              className={form.pan && !isPanValid ? 'border-red-500' : ''}
             />
-            <p className="text-xs text-muted-foreground">
-              10-character alphanumeric (e.g., ABCDE1234F)
-            </p>
+            {form.pan && !isPanValid ? (
+              <p className="text-[10px] text-red-500 font-medium">Invalid PAN format (e.g., ABCDE1234F)</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                10-character alphanumeric (e.g., ABCDE1234F)
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="gstin">GSTIN (optional)</Label>
@@ -437,7 +465,11 @@ function BusinessDetailsStep() {
                 handleChange('gstin', e.target.value.toUpperCase())
               }
               maxLength={15}
+              className={form.gstin && !isGstinValid ? 'border-red-500' : ''}
             />
+            {form.gstin && !isGstinValid && (
+              <p className="text-[10px] text-red-500 font-medium">Invalid GSTIN format (15 characters)</p>
+            )}
           </div>
         </div>
 
@@ -448,17 +480,25 @@ function BusinessDetailsStep() {
             placeholder="123 Business St, Mumbai, MH 400001"
             value={form.businessAddress}
             onChange={(e) => handleChange('businessAddress', e.target.value)}
+            className={form.businessAddress && !isAddressValid ? 'border-red-500' : ''}
           />
+          {form.businessAddress && !isAddressValid && (
+            <p className="text-[10px] text-red-500 font-medium">Address must be at least 10 characters</p>
+          )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="websiteUrl">Website URL *</Label>
+          <Label htmlFor="websiteUrl">Website URL (optional)</Label>
           <Input
             id="websiteUrl"
             placeholder="https://example.com"
             value={form.websiteUrl}
             onChange={(e) => handleChange('websiteUrl', e.target.value)}
+            className={form.websiteUrl && !isWebsiteValid ? 'border-red-500' : ''}
           />
+          {form.websiteUrl && !isWebsiteValid && (
+            <p className="text-[10px] text-red-500 font-medium">Invalid URL format (e.g., https://example.com)</p>
+          )}
         </div>
       </div>
 
@@ -505,8 +545,9 @@ function BusinessDetailsStep() {
 
       <ErrorDisplay message={error} />
 
+
       <Button
-        className="w-full"
+        className={`w-full ${!isValid ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
         onClick={handleSubmit}
         disabled={loading || !isValid}
       >
@@ -518,7 +559,7 @@ function BusinessDetailsStep() {
 }
 
 function PendingApprovalStep() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const isRejected = user?.kycStatus === 'rejected';
 
@@ -596,16 +637,12 @@ function PendingApprovalStep() {
           Please update your details and resubmit for review.
         </p>
       )}
-
-      <Button variant="outline" className="w-full" onClick={logout}>
-        Sign Out
-      </Button>
     </div>
   );
 }
-
 export function OnboardingPage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   let currentStep: number;
   if (!user?.mobileVerified) {
@@ -652,8 +689,47 @@ export function OnboardingPage() {
             {currentStep === 2 && <BusinessDetailsStep />}
             {currentStep === 3 && <PendingApprovalStep />}
           </div>
+
+          <Separator />
+
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowLogoutDialog(true)}
+              className="text-sm text-muted-foreground underline-offset-4 hover:text-primary hover:underline"
+            >
+              Sign out and finish later
+            </button>
+          </div>
         </CardContent>
       </Card>
+
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Sign out</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to sign out? Your progress will be saved.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                setShowLogoutDialog(false);
+                await logout();
+              }}
+            >
+              Sign out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

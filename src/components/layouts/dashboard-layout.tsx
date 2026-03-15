@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Wallet } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { AddMoneyDialog } from "@/components/add-money-dialog";
 import { useWallet } from "@/hooks/useWallet";
 import { formatINR } from "@/lib/utils";
+import { loadRazorpayScript } from "@/lib/razorpay";
 
 function WalletBadge() {
   const { balance, isLoading } = useWallet();
@@ -29,6 +31,10 @@ function WalletBadge() {
 }
 
 export function DashboardLayout() {
+  useEffect(() => {
+    loadRazorpayScript().catch(console.error);
+  }, []);
+
   return (
     <TooltipProvider>
       <SidebarProvider>

@@ -13,6 +13,8 @@ const MESSAGES_LIMIT = 20;
 export function useMessages() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<string>("all");
+  const [apiKeyId, setApiKeyId] = useState<string>("all");
   const [dateRange, setDateRange] = useState<{
     from: Date;
     to: Date;
@@ -21,10 +23,10 @@ export function useMessages() {
   const startDate = dateRange?.from.toISOString();
   const endDate = dateRange?.to.toISOString();
 
-  const { data, isLoading, isPlaceholderData } =
+  const { data, isLoading, isPlaceholderData, refetch, isFetching } =
     useQuery<PaginatedResponse<Message>>({
-      queryKey: ["messages", page, MESSAGES_LIMIT, startDate, endDate],
-      queryFn: () => getMessages(page, MESSAGES_LIMIT, startDate, endDate),
+      queryKey: ["messages", page, MESSAGES_LIMIT, startDate, endDate, status, apiKeyId],
+      queryFn: () => getMessages(page, MESSAGES_LIMIT, startDate, endDate, status, apiKeyId),
       placeholderData: keepPreviousData,
     });
 
@@ -59,10 +61,17 @@ export function useMessages() {
     isPlaceholderData,
     page,
     setPage,
+    status,
+    setStatus: (s: string) => { setStatus(s); setPage(1); },
+    apiKeyId,
+    setApiKeyId: (id: string) => { setApiKeyId(id); setPage(1); },
     goToNextPage,
     goToPreviousPage,
     dateRange,
     onDateRangeChange,
+    refetch,
+    refresh: refetch,
+    isFetching,
     checkStatus: checkStatusMutation.mutate,
     isCheckingStatus: checkStatusMutation.isPending,
     checkingStatusId: checkStatusMutation.variables,

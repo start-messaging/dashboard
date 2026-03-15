@@ -7,11 +7,19 @@ const TRANSACTIONS_LIMIT = 10;
 
 export function useTransactions() {
   const [page, setPage] = useState(1);
+  const [type, setType] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | null>(null);
 
   const { data, isLoading, isPlaceholderData } =
     useQuery<PaginatedResponse<WalletTransaction>>({
-      queryKey: ["transactions", page, TRANSACTIONS_LIMIT],
-      queryFn: () => getWalletTransactions(page, TRANSACTIONS_LIMIT),
+      queryKey: ["transactions", page, TRANSACTIONS_LIMIT, type, dateRange?.from, dateRange?.to],
+      queryFn: () => getWalletTransactions(
+        page, 
+        TRANSACTIONS_LIMIT, 
+        type, 
+        dateRange?.from?.toISOString(), 
+        dateRange?.to?.toISOString()
+      ),
       placeholderData: keepPreviousData,
     });
 
@@ -34,6 +42,10 @@ export function useTransactions() {
     isPlaceholderData,
     page,
     setPage,
+    type,
+    setType,
+    dateRange,
+    setDateRange,
     goToNextPage,
     goToPreviousPage,
   };

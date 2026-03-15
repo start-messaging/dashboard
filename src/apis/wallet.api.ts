@@ -8,8 +8,14 @@ export function getWalletBalance(): Promise<Wallet> {
 export function getWalletTransactions(
   page: number,
   limit: number,
+  type?: string,
+  startDate?: string,
+  endDate?: string,
 ): Promise<PaginatedResponse<WalletTransaction>> {
-  return apiGetPaginated<WalletTransaction>(
-    `/wallet/transactions?page=${page}&limit=${limit}`,
-  );
+  let url = `/wallet/transactions?page=${page}&limit=${limit}`;
+  if (type && type !== "all") url += `&type=${type}`;
+  if (startDate) url += `&startDate=${startDate}`;
+  if (endDate) url += `&endDate=${endDate}`;
+  
+  return apiGetPaginated<WalletTransaction>(url);
 }

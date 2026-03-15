@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   ArrowLeftRight,
+  BookOpen,
   Key,
   LayoutDashboard,
   LogOut,
@@ -21,17 +22,28 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: ROUTES.DASHBOARD },
   { label: "Message History", icon: MessageSquare, path: ROUTES.MESSAGES },
   { label: "API Keys", icon: Key, path: ROUTES.API_KEYS },
+  { label: "API Docs & Test", icon: BookOpen, path: ROUTES.API_DOCS },
   { label: "Transactions", icon: ArrowLeftRight, path: ROUTES.TRANSACTIONS },
 ];
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   return (
     <Sidebar collapsible="icon">
@@ -83,13 +95,41 @@ export function AppSidebar() {
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={logout}
+            onClick={() => setShowLogoutDialog(true)}
             className="shrink-0"
           >
             <LogOut className="size-4" />
             <span className="sr-only">Sign out</span>
           </Button>
         </div>
+
+        <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Sign out</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to sign out of your account?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="mt-4 gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={() => setShowLogoutDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  setShowLogoutDialog(false);
+                  await logout();
+                }}
+              >
+                Sign out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </SidebarFooter>
     </Sidebar>
   );

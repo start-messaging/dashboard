@@ -22,7 +22,7 @@ interface RazorpayCheckoutOptions {
   currency: string;
   name: string;
   description: string;
-  prefill?: { email?: string; contact?: string };
+  prefill?: { email?: string; contact?: string; name?: string };
   onSuccess: (response: {
     razorpay_order_id: string;
     razorpay_payment_id: string;
@@ -35,12 +35,15 @@ export function openRazorpayCheckout(opts: RazorpayCheckoutOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rzp = new (window as any).Razorpay({
     key: opts.gatewayKey,
-    amount: opts.amount * 100, // Razorpay expects paise
+    amount: opts.amount * 100,
     currency: opts.currency,
     name: opts.name,
     description: opts.description,
     order_id: opts.gatewayOrderId,
     prefill: opts.prefill,
+    theme: {
+      color: "#3b82f6",
+    },
     handler: opts.onSuccess,
     modal: {
       ondismiss: opts.onDismiss,
