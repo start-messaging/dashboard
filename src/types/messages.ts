@@ -6,8 +6,9 @@ export interface StatusHistoryEntry {
 export interface Message {
   id: string;
   phoneNumber: string;
+  apiKeyId: string | null;
   content: string;
-  status: "QUEUED" | "SENT" | "DELIVERED" | "FAILED" | "EXPIRED";
+  status: "initiated" | "queued" | "sent" | "delivered" | "failed" | "expired";
   statusHistory: StatusHistoryEntry[];
   costAmount: string;
   failureReason: string | null;

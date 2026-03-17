@@ -36,7 +36,7 @@ export interface PaginatedResponse<T> {
 export interface WalletTransaction {
   id: string;
   walletId: string;
-  type: "credit" | "refund";
+  type: "credit" | "refund" | "debit";
   amount: number;
   balanceBefore: number;
   balanceAfter: number;

@@ -8,21 +8,16 @@ import {
   Eye,
   EyeOff,
   Inbox,
-  FileText,
-  Code,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
 import {
   useApiKeys,
   useCreateApiKey,
   useDeleteApiKey,
 } from "@/hooks/useApiKeys";
-import { getTemplates } from "@/apis/otp.api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -41,135 +36,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { OtpTemplate } from "@/types";
-
-const API_BASE_URL = "https://api.startmessaging.com";
-
-const CODE_SNIPPETS = {
-  curl: `curl -X POST ${API_BASE_URL}/otp/send \\
-  -H "Content-Type: application/json" \\
-  -H "X-API-Key: sm_live_your_api_key_here" \\
-  -d '{
-    "phoneNumber": "+919876543210",
-    "variables": {
-      "otp": "123456",
-      "appName": "YourApp",
-      "expiry": "5"
-    },
-    "templateId": "your-template-id"
-  }'`,
-
-  javascript: `const response = await fetch("${API_BASE_URL}/otp/send", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "X-API-Key": "sm_live_your_api_key_here",
-  },
-  body: JSON.stringify({
-    phoneNumber: "+919876543210",
-    variables: {
-      otp: "123456",
-      appName: "YourApp",
-      expiry: "5",
-    },
-    templateId: "your-template-id",
-  }),
-});
-
-const data = await response.json();
-console.log(data);`,
-
-  python: `import requests
-
-response = requests.post(
-    "${API_BASE_URL}/otp/send",
-    headers={
-        "Content-Type": "application/json",
-        "X-API-Key": "sm_live_your_api_key_here",
-    },
-    json={
-        "phoneNumber": "+919876543210",
-        "variables": {
-            "otp": "123456",
-            "appName": "YourApp",
-            "expiry": "5",
-        },
-        "templateId": "your-template-id",
-    },
-)
-
-print(response.json())`,
-
-  php: `<?php
-$ch = curl_init("${API_BASE_URL}/otp/send");
-
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST => true,
-    CURLOPT_HTTPHEADER => [
-        "Content-Type: application/json",
-        "X-API-Key: sm_live_your_api_key_here",
-    ],
-    CURLOPT_POSTFIELDS => json_encode([
-        "phoneNumber" => "+919876543210",
-        "variables" => [
-            "otp" => "123456",
-            "appName" => "YourApp",
-            "expiry" => "5",
-        ],
-        "templateId" => "your-template-id",
-    ]),
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-echo $response;`,
-
-  go: `package main
-
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"io"
-)
-
-func main() {
-	body, _ := json.Marshal(map[string]interface{}{
-		"phoneNumber": "+919876543210",
-		"variables": map[string]string{
-			"otp":     "123456",
-			"appName": "YourApp",
-			"expiry":  "5",
-		},
-		"templateId": "your-template-id",
-	})
-
-	req, _ := http.NewRequest("POST", "${API_BASE_URL}/otp/send", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-API-Key", "sm_live_your_api_key_here")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	data, _ := io.ReadAll(resp.Body)
-	fmt.Println(string(data))
-}`,
-};
-
-const LANGUAGE_LABELS: Record<string, string> = {
-  curl: "cURL",
-  javascript: "JavaScript",
-  python: "Python",
-  php: "PHP",
-  go: "Go",
-};
 
 export function ApiKeysPage() {
   const { data: keys, isLoading: keysLoading } = useApiKeys();
@@ -182,56 +48,15 @@ export function ApiKeysPage() {
       </div>
 
       <ApiKeysSection keys={keys ?? []} isLoading={keysLoading} />
-
-      <TemplatesReference />
-
-      <ApiUsageGuide />
-    </div>
-  );
-}
-
-function ApiUsageGuide() {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Code className="size-5" />
-        <h2 className="text-xl font-bold">API Usage Guide</h2>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">
-            Send OTP via API
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Use your API key to send OTPs programmatically. Replace the
-            placeholder values with your actual API key, phone number, and
-            template ID.
+      
+      <Card className="bg-muted/50 border-dashed">
+        <CardContent className="pt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Looking for code examples and testing tools? 
+            <Button variant="link" className="px-1" asChild>
+              <a href="/api-docs">View API Docs & Testing &rarr;</a>
+            </Button>
           </p>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="curl">
-            <TabsList>
-              {Object.keys(CODE_SNIPPETS).map((lang) => (
-                <TabsTrigger key={lang} value={lang}>
-                  {LANGUAGE_LABELS[lang]}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {Object.entries(CODE_SNIPPETS).map(([lang, code]) => (
-              <TabsContent key={lang} value={lang}>
-                <div className="relative">
-                  <div className="absolute top-2 right-2">
-                    <CopyButton text={code} />
-                  </div>
-                  <pre className="overflow-x-auto rounded-lg bg-muted p-4 pr-12 text-sm">
-                    <code>{code}</code>
-                  </pre>
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
         </CardContent>
       </Card>
     </div>
@@ -242,13 +67,7 @@ function ApiKeysSection({
   keys,
   isLoading,
 }: {
-  keys: {
-    id: string;
-    keyPrefix: string;
-    label: string;
-    lastUsedAt: string | null;
-    createdAt: string;
-  }[];
+  keys: any[];
   isLoading: boolean;
 }) {
   return (
@@ -263,7 +82,7 @@ function ApiKeysSection({
       {isLoading ? (
         <KeysLoadingSkeleton />
       ) : keys.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground border rounded-lg bg-muted/20">
           <Inbox className="size-10" />
           <p className="text-sm">
             No API keys yet. Create one to get started.
@@ -294,13 +113,7 @@ function ApiKeysSection({
 function ApiKeyRow({
   apiKey,
 }: {
-  apiKey: {
-    id: string;
-    keyPrefix: string;
-    label: string;
-    lastUsedAt: string | null;
-    createdAt: string;
-  };
+  apiKey: any;
 }) {
   const deleteKey = useDeleteApiKey();
 
@@ -336,7 +149,11 @@ function ApiKeyRow({
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={() => deleteKey.mutate(apiKey.id)}
+          onClick={() => {
+            if (confirm("Are you sure you want to delete this key?")) {
+              deleteKey.mutate(apiKey.id);
+            }
+          }}
           disabled={deleteKey.isPending}
         >
           <Trash2 className="size-4 text-destructive" />
@@ -393,7 +210,7 @@ function CreateKeyDialog() {
                 <code className="flex-1 rounded bg-muted px-3 py-2 text-xs font-mono break-all">
                   {showKey
                     ? createdKey
-                    : createdKey.slice(0, 12) + "\u2022".repeat(28)}
+                    : createdKey.slice(0, 12) + "\u2022".repeat(Math.max(0, createdKey.length - 12))}
                 </code>
                 <Button
                   variant="ghost"
@@ -438,113 +255,6 @@ function CreateKeyDialog() {
         )}
       </DialogContent>
     </Dialog>
-  );
-}
-
-function TemplatesReference() {
-  const { data: templates = [], isLoading } = useQuery<OtpTemplate[]>({
-    queryKey: ["templates"],
-    queryFn: getTemplates,
-  });
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <FileText className="size-4" />
-          <CardTitle className="text-sm font-medium">
-            Available OTP Templates
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-xs text-muted-foreground">
-          Pass any template ID as{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-            templateId
-          </code>{" "}
-          in your{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-            POST /otp/send
-          </code>{" "}
-          request. Available placeholders:{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-            {"{{otp}}"}
-          </code>
-          ,{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-            {"{{expiry}}"}
-          </code>
-          ,{" "}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-            {"{{appName}}"}
-          </code>
-        </p>
-        {isLoading ? (
-          <Skeleton className="h-24 w-full" />
-        ) : templates.length === 0 ? (
-          <p className="text-xs text-muted-foreground italic">
-            No templates available.
-          </p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Template ID</TableHead>
-                <TableHead>Message Body</TableHead>
-                <TableHead>Language</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {templates.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="font-medium text-xs">
-                    {t.name}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono break-all">
-                        {t.id}
-                      </code>
-                      <CopyButton text={t.id} />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-xs">
-                    <TemplateBody body={t.body} />
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="text-xs">
-                      {t.language}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function TemplateBody({ body }: { body: string }) {
-  const parts = body.split(/({{[^}]+}})/g);
-  return (
-    <span>
-      {parts.map((part, i) =>
-        part.startsWith("{{") ? (
-          <code
-            key={i}
-            className="rounded bg-primary/10 px-1 py-0.5 font-mono text-primary"
-          >
-            {part}
-          </code>
-        ) : (
-          <span key={i}>{part}</span>
-        ),
-      )}
-    </span>
   );
 }
 

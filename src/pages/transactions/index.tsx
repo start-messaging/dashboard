@@ -1,4 +1,10 @@
-import { ArrowLeftRight, ChevronLeft, ChevronRight, Inbox } from "lucide-react";
+import { 
+  ArrowLeftRight, 
+  ChevronLeft, 
+  ChevronRight, 
+  Inbox, 
+  X 
+} from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatINR } from "@/lib/utils";
+import { DateRangePicker } from "@/components/date-range-picker";
 
 export function TransactionsPage() {
   const {
@@ -19,15 +26,71 @@ export function TransactionsPage() {
     pagination,
     isLoading,
     isPlaceholderData,
+    type,
+    setType,
+    dateRange,
+    setDateRange,
+    setPage,
     goToNextPage,
     goToPreviousPage,
   } = useTransactions();
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <ArrowLeftRight className="size-5" />
-        <h1 className="text-2xl font-bold">Transactions</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <ArrowLeftRight className="size-5" />
+          <h1 className="text-2xl font-bold">Transactions</h1>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+              Filter by type:
+            </span>
+            <select
+              className="h-9 rounded-md border bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="all">All Types</option>
+              <option value="credit">Credit</option>
+              <option value="debit">Debit</option>
+              <option value="refund">Refund</option>
+            </select>
+          </div>
+
+          <DateRangePicker
+            dateRange={dateRange ?? { from: new Date(), to: new Date() }}
+            onDateRangeChange={(range) => {
+              if (range?.from && range?.to) {
+                setDateRange({ from: range.from, to: range.to });
+              } else {
+                setDateRange(null);
+              }
+              setPage(1);
+            }}
+          />
+
+          {(type !== "all" || dateRange) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setType("all");
+                setDateRange(null);
+                setPage(1);
+              }}
+              className="h-9 text-muted-foreground"
+            >
+              <X className="mr-1 size-4" />
+              Reset
+            </Button>
+          )}
+        </div>
       </div>
 
       <div
@@ -54,18 +117,36 @@ export function TransactionsPage() {
               {transactions.map((tx) => (
                 <TableRow key={tx.id}>
                   <TableCell className="text-muted-foreground">
-                    {new Date(tx.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    <div className="flex flex-col">
+                      <span>
+                        {new Date(tx.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <span className="text-xs opacity-70">
+                        {new Date(tx.createdAt).toLocaleTimeString("en-IN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>{tx.description}</TableCell>
                   <TableCell>
-                    <TypeBadge type={tx.type} />
+                    <TypeBadge type={tx.type as any} />
                   </TableCell>
-                  <TableCell className="text-right font-medium text-emerald-600">
-                    +{formatINR(tx.amount)}
+                  <TableCell
+                    className={`text-right font-medium ${
+                      tx.type === "debit"
+                        ? "text-red-600"
+                        : "text-emerald-600"
+                    }`}
+                  >
+                    {tx.type === "debit" ? "-" : "+"}
+                    {formatINR(tx.amount)}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {formatINR(tx.balanceAfter)}
@@ -108,7 +189,14 @@ export function TransactionsPage() {
   );
 }
 
-function TypeBadge({ type }: { type: "credit" | "refund" }) {
+function TypeBadge({ type }: { type: "credit" | "refund" | "debit" }) {
+  if (type === "debit") {
+    return (
+      <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+        Debit
+      </Badge>
+    );
+  }
   if (type === "credit") {
     return (
       <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">

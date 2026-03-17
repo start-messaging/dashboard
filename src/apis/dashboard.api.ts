@@ -11,3 +11,7 @@ export function getDashboardStats(
   const qs = params.toString();
   return apiGet<DashboardStats>(`/dashboard/stats${qs ? `?${qs}` : ""}`);
 }
+
+export function getDashboardTrends(days = 7): Promise<any[]> {
+  return apiGet<any[]>(`/dashboard/trends?days=${days}`);
+}

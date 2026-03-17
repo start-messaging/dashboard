@@ -28,8 +28,9 @@ export function AddMoneyDialog() {
   const { refreshWallet } = useWallet();
   const { user } = useAuth();
 
+  const minAmount = import.meta.env.DEV ? 10 : 1000;
   const numericAmount = Number(amount);
-  const isValid = numericAmount >= 1000;
+  const isValid = numericAmount >= minAmount;
 
   const buttonLabel: Record<ButtonState, string> = {
     idle: "Proceed to Pay",
@@ -54,7 +55,11 @@ export function AddMoneyDialog() {
         currency: order.currency,
         name: "StartMessaging",
         description: `Add ₹${numericAmount.toLocaleString("en-IN")} to wallet`,
-        prefill: { email: user?.email },
+        prefill: { 
+          email: user?.email,
+          name: `${user?.firstName} ${user?.lastName}`.trim(),
+          contact: user?.mobileNumber || undefined,
+        },
         onSuccess: async (response) => {
           try {
             setState("verifying");
@@ -102,7 +107,7 @@ export function AddMoneyDialog() {
         <DialogHeader>
           <DialogTitle>Add Money to Wallet</DialogTitle>
           <DialogDescription>
-            Minimum amount is ₹1,000. Payment processing fees apply.
+            Minimum amount is ₹{minAmount.toLocaleString("en-IN")}. Payment processing fees apply.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
@@ -110,15 +115,15 @@ export function AddMoneyDialog() {
           <Input
             id="amount"
             type="number"
-            min={1000}
+            min={minAmount}
             step={1}
-            placeholder="1000"
+            placeholder={String(minAmount)}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             disabled={state !== "idle"}
           />
           {amount && !isValid && (
-            <p className="text-sm text-destructive">Minimum amount is ₹1,000</p>
+            <p className="text-sm text-destructive">Minimum amount is ₹{minAmount.toLocaleString("en-IN")}</p>
           )}
         </div>
         <DialogFooter>
