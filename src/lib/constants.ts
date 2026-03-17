@@ -9,4 +9,5 @@ export const ROUTES = {
   TRANSACTIONS: '/transactions',
   MESSAGES: '/messages',
   API_KEYS: '/api-keys',
+  API_DOCS: '/api-docs',
 } as const;

@@ -12,6 +12,7 @@ import { OnboardingPage } from '@/pages/onboarding';
 import { DashboardPage } from '@/pages/dashboard';
 import { TransactionsPage } from '@/pages/transactions';
 import { ApiKeysPage } from '@/pages/api-keys';
+import { ApiDocsPage } from '@/pages/api-docs';
 import { MessagesPage } from '@/pages/messages';
 import { ROUTES } from '@/lib/constants';
 
@@ -34,6 +35,7 @@ export default function App() {
           <Route element={<DashboardLayout />}>
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.API_KEYS} element={<ApiKeysPage />} />
+            <Route path={ROUTES.API_DOCS} element={<ApiDocsPage />} />
             <Route path={ROUTES.TRANSACTIONS} element={<TransactionsPage />} />
             <Route path={ROUTES.MESSAGES} element={<MessagesPage />} />
           </Route>
