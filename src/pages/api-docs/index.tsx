@@ -569,7 +569,7 @@ function ApiTester({ onApiKeyChange, initialApiKey }: { onApiKeyChange: (key: st
             <div className="space-y-2">
               <label className="text-xs font-semibold flex items-center justify-between">
                 <span>OTP Code (Mock)</span>
-                <span className="text-[10px] text-muted-foreground font-normal italic">4-8 digits</span>
+                <span className="text-[10px] text-muted-foreground font-normal italic">4-6 digits</span>
               </label>
               <Input 
                 placeholder="123456" 
