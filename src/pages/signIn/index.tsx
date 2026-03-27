@@ -46,7 +46,7 @@ export function SignInPage() {
         type: 'standard',
         text: 'continue_with',
         shape: 'rectangular',
-        width: '380',
+        width: window.innerWidth < 400 ? String(window.innerWidth - 64) : '380',
       });
       
       setIsGoogleLoading(false);
