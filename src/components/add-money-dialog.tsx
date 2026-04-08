@@ -47,7 +47,10 @@ export function AddMoneyDialog() {
       await loadRazorpayScript();
       const order = await createPaymentOrder(numericAmount);
 
+      // Close dialog before opening Razorpay to avoid Radix's pointer-events blocking
+      setOpen(false);
       setState("paying");
+
       openRazorpayCheckout({
         gatewayKey: order.gatewayKey,
         gatewayOrderId: order.gatewayOrderId,
@@ -70,16 +73,20 @@ export function AddMoneyDialog() {
             });
             toast.success("Payment successful! Wallet balance updated.");
             refreshWallet();
-            setOpen(false);
+            // Dialog is already closed, reset amount
             setAmount("");
           } catch (err) {
             toast.error(getApiErrorMessage(err));
+            // Re-open dialog so user can see error or try again
+            setOpen(true);
           } finally {
             setState("idle");
           }
         },
         onDismiss: () => {
           setState("idle");
+          // Re-open dialog when dismissed
+          setOpen(true);
         },
       });
     } catch (err) {

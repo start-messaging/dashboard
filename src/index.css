@@ -127,3 +127,8 @@
     @apply font-sans;
     }
 }
+
+/* Razorpay Fix: Ensure checkout is interactive even when Radix/Shadcn modals are open */
+.razorpay-container {
+  pointer-events: auto !important;
+}
