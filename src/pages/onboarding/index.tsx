@@ -8,6 +8,7 @@ import {
   Clock,
   Upload,
   X,
+  MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -49,6 +50,9 @@ const STEPS = [
   { step: 2, title: 'Business Details' },
   { step: 3, title: 'Approval' },
 ] as const;
+
+const SUPPORT_WHATSAPP_URL =
+  'https://wa.me/916376383348?text=Hi%2C%20I%20need%20help%20with%20StartMessaging%20onboarding.';
 
 function StepIndicator({
   currentStep,
@@ -103,6 +107,25 @@ function ErrorDisplay({ message }: { message: string }) {
     <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3">
       <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
       <p className="text-sm text-destructive">{message}</p>
+    </div>
+  );
+}
+
+function OnboardingSupportCta() {
+  return (
+    <div className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-center">
+      <p className="text-xs text-muted-foreground">
+        Need help at any step? Reach support on WhatsApp.
+      </p>
+      <a
+        href={SUPPORT_WHATSAPP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#20BD5A]"
+      >
+        <MessageCircle className="h-5 w-5" />
+        Chat with Support on WhatsApp
+      </a>
     </div>
   );
 }
@@ -383,7 +406,9 @@ function BusinessDetailsStep() {
       formData.append('pan', form.pan);
       if (form.gstin) formData.append('gstin', form.gstin);
       formData.append('businessAddress', form.businessAddress);
-      formData.append('websiteUrl', form.websiteUrl);
+      if (form.websiteUrl.trim()) {
+        formData.append('websiteUrl', form.websiteUrl.trim());
+      }
       if (file) formData.append('document', file);
 
       await submitKyc(formData);
@@ -403,7 +428,17 @@ function BusinessDetailsStep() {
   const isPanValid = PAN_REGEX.test(form.pan);
   const isGstinValid = !form.gstin || GSTIN_REGEX.test(form.gstin);
   const isAddressValid = form.businessAddress.trim().length >= 10;
-  const isWebsiteValid = !form.websiteUrl || form.websiteUrl.trim().length >= 5;
+  const isWebsiteValid =
+    !form.websiteUrl ||
+    (() => {
+      try {
+        // Keep in sync with backend optional IsUrl validation.
+        new URL(form.websiteUrl.trim());
+        return true;
+      } catch {
+        return false;
+      }
+    })();
 
 
   const isValid =
@@ -608,30 +643,6 @@ function PendingApprovalStep() {
 
       <Separator />
 
-      {!isRejected && (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">
-            Need faster approval? Contact our support team.
-          </p>
-          <a
-            href="https://wa.me/919034036898?text=Hi%2C%20I%20submitted%20my%20KYC%20for%20StartMessaging.%20Please%20review%20my%20documents."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#20BD5A]"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="h-5 w-5"
-            >
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-            </svg>
-            Chat with Support on WhatsApp
-          </a>
-        </div>
-      )}
-
       {isRejected && (
         <p className="text-xs text-muted-foreground">
           Please update your details and resubmit for review.
@@ -689,6 +700,8 @@ export function OnboardingPage() {
             {currentStep === 2 && <BusinessDetailsStep />}
             {currentStep === 3 && <PendingApprovalStep />}
           </div>
+
+          <OnboardingSupportCta />
 
           <Separator />
 

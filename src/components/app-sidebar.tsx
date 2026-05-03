@@ -22,6 +22,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { AppIcon } from "@/components/ui/app-icon";
 import {
   Dialog,
   DialogContent,
@@ -49,8 +50,8 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-3">
         <div className="flex items-center gap-2 overflow-hidden">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm">
-            SM
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <AppIcon className="size-5" />
           </div>
           <span className="truncate font-semibold">StartMessaging</span>
         </div>
