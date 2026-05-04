@@ -51,11 +51,17 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
+    const requestUrl = originalRequest.url ?? '';
+    const isAuthEndpoint =
+      requestUrl.includes('/auth/google') ||
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/register') ||
+      requestUrl.includes('/auth/refresh');
 
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
-      originalRequest.url?.includes("/auth/refresh")
+      isAuthEndpoint
     ) {
       return Promise.reject(error);
     }

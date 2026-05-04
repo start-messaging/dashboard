@@ -1,18 +1,12 @@
-import { useState, useMemo } from 'react';
-import { ChevronDown, Search } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useMemo } from "react";
+import { ChevronDown } from "lucide-react";
 import {
   countries,
   countryByCode,
   DEFAULT_COUNTRY_CODE,
-  POPULAR_COUNTRIES,
-  type Country,
-} from '@/data/countries';
-import { cn } from '@/lib/utils';
+} from "@/data/countries";
+import { cn } from "@/lib/utils";
 
 interface PhoneInputProps {
   value: string;
@@ -21,8 +15,10 @@ interface PhoneInputProps {
 }
 
 export function PhoneInput({ value, onChange, disabled }: PhoneInputProps) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
+  // const [open, setOpen] = useState(false);
+  // const [search, setSearch] = useState("");
+
+  const DefaultCountry = countries.find((c) => c.code === DEFAULT_COUNTRY_CODE);
 
   const selectedCountry = useMemo(() => {
     // Try to find which country matches the current value's dial code
@@ -38,53 +34,49 @@ export function PhoneInput({ value, onChange, disabled }: PhoneInputProps) {
     return countryByCode.get(DEFAULT_COUNTRY_CODE)!;
   }, [value]);
 
-  const localNumber = value
-    ? value.replace(selectedCountry.dialCode, '')
-    : '';
+  const localNumber = value ? value.replace(selectedCountry.dialCode, "") : "";
 
   const maxLength = Array.isArray(selectedCountry.phoneLength)
     ? selectedCountry.phoneLength[1]
     : selectedCountry.phoneLength;
 
   const handleLocalChange = (digits: string) => {
-    const cleaned = digits.replace(/\D/g, '').slice(0, maxLength);
+    const cleaned = digits.replace(/\D/g, "").slice(0, maxLength);
     onChange(selectedCountry.dialCode + cleaned);
   };
 
-  const handleCountrySelect = (country: Country) => {
-    setOpen(false);
-    setSearch('');
-    // Re-build E.164 with new dial code + existing local digits
-    const currentLocal = localNumber.replace(/\D/g, '');
-    const newMaxLength = Array.isArray(country.phoneLength)
-      ? country.phoneLength[1]
-      : country.phoneLength;
-    onChange(country.dialCode + currentLocal.slice(0, newMaxLength));
-  };
+  // const handleCountrySelect = (country: Country) => {
+  //   setOpen(false);
+  //   setSearch("");
+  //   // Re-build E.164 with new dial code + existing local digits
+  //   const currentLocal = localNumber.replace(/\D/g, "");
+  //   const newMaxLength = Array.isArray(country.phoneLength)
+  //     ? country.phoneLength[1]
+  //     : country.phoneLength;
+  //   onChange(country.dialCode + currentLocal.slice(0, newMaxLength));
+  // };
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return null;
-    const q = search.toLowerCase();
-    return countries.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.dialCode.includes(q) ||
-        c.code.toLowerCase().includes(q),
-    );
-  }, [search]);
+  // const filtered = useMemo(() => {
+  //   if (!search.trim()) return null;
+  //   const q = search.toLowerCase();
+  //   return countries.filter(
+  //     (c) =>
+  //       c.name.toLowerCase().includes(q) ||
+  //       c.dialCode.includes(q) ||
+  //       c.code.toLowerCase().includes(q),
+  //   );
+  // }, [search]);
 
-  const popularList = POPULAR_COUNTRIES.map(
-    (code) => countryByCode.get(code)!,
-  );
+  // const popularList = POPULAR_COUNTRIES.map((code) => countryByCode.get(code)!);
 
   return (
     <div
       className={cn(
-        'flex h-8 w-full rounded-lg border border-input transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
-        disabled && 'pointer-events-none bg-input/50 opacity-50',
+        "flex h-8 w-full rounded-lg border border-input transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
+        disabled && "pointer-events-none bg-input/50 opacity-50",
       )}
     >
-      <Popover open={open} onOpenChange={setOpen}>
+      {/* <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
@@ -154,7 +146,19 @@ export function PhoneInput({ value, onChange, disabled }: PhoneInputProps) {
             )}
           </div>
         </PopoverContent>
-      </Popover>
+      </Popover> */}
+
+      <button
+        type="button"
+        disabled={disabled}
+        className="flex shrink-0 items-center gap-1 rounded-l-lg border-r border-input px-2 text-sm hover:bg-accent"
+      >
+        <span className="text-base leading-none">{DefaultCountry?.flag}</span>
+        <span className="text-muted-foreground">
+          {DefaultCountry?.dialCode}
+        </span>
+        <ChevronDown className="h-3 w-3 text-muted-foreground" />
+      </button>
 
       <input
         type="tel"
@@ -170,29 +174,29 @@ export function PhoneInput({ value, onChange, disabled }: PhoneInputProps) {
   );
 }
 
-function CountryRow({
-  country,
-  selected,
-  onSelect,
-}: {
-  country: Country;
-  selected: boolean;
-  onSelect: (c: Country) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(country)}
-      className={cn(
-        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent',
-        selected && 'bg-accent',
-      )}
-    >
-      <span className="text-base leading-none">{country.flag}</span>
-      <span className="truncate">{country.name}</span>
-      <span className="ml-auto shrink-0 text-muted-foreground">
-        {country.dialCode}
-      </span>
-    </button>
-  );
-}
+// function CountryRow({
+//   country,
+//   selected,
+//   onSelect,
+// }: {
+//   country: Country;
+//   selected: boolean;
+//   onSelect: (c: Country) => void;
+// }) {
+//   return (
+//     <button
+//       type="button"
+//       onClick={() => onSelect(country)}
+//       className={cn(
+//         "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent",
+//         selected && "bg-accent",
+//       )}
+//     >
+//       <span className="text-base leading-none">{country.flag}</span>
+//       <span className="truncate">{country.name}</span>
+//       <span className="ml-auto shrink-0 text-muted-foreground">
+//         {country.dialCode}
+//       </span>
+//     </button>
+//   );
+// }
