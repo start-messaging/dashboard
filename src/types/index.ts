@@ -14,7 +14,14 @@ export type {
   WalletTransaction,
 } from "./wallet";
 export type { DashboardStats } from "./dashboard";
-export type { OtpTemplate, SendOtpPayload, SendOtpResponse } from "./otp";
+export type {
+  OtpTemplate,
+  TemplateStatus,
+  Channel,
+  CreateTemplatePayload,
+  SendOtpPayload,
+  SendOtpResponse,
+} from "./otp";
 export type {
   ApiKey,
   LanguageExamples,
@@ -23,3 +30,16 @@ export type {
   CreateApiKeyResponse,
 } from "./api-keys";
 export type { Message, StatusHistoryEntry } from "./messages";
+export type {
+  PartnerStatus,
+  ReferralStatus,
+  PayoutStatus,
+  CommissionType,
+  PartnerProfile,
+  PartnerEligibility,
+  PartnerStats,
+  Referral,
+  Commission,
+  Payout,
+  PayoutDetailsInput,
+} from "./partner";

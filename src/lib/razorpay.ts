@@ -18,7 +18,8 @@ export function loadRazorpayScript(): Promise<void> {
 interface RazorpayCheckoutOptions {
   gatewayKey: string;
   gatewayOrderId: string;
-  amount: number;
+  /** Amount to charge in the smallest currency unit (paise for INR). */
+  amountPaise: number;
   currency: string;
   name: string;
   description: string;
@@ -35,7 +36,8 @@ export function openRazorpayCheckout(opts: RazorpayCheckoutOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rzp = new (window as any).Razorpay({
     key: opts.gatewayKey,
-    amount: opts.amount * 100,
+    // Server already computed the exact charge (base + fee + GST) in paise.
+    amount: opts.amountPaise,
     currency: opts.currency,
     name: opts.name,
     description: opts.description,

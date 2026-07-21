@@ -2,6 +2,8 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   ArrowLeftRight,
   BookOpen,
+  FileText,
+  Gift,
   Key,
   LayoutDashboard,
   LogOut,
@@ -36,9 +38,11 @@ import { useState } from "react";
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: ROUTES.DASHBOARD },
   { label: "Message History", icon: MessageSquare, path: ROUTES.MESSAGES },
+  { label: "Templates", icon: FileText, path: ROUTES.TEMPLATES },
   { label: "API Keys", icon: Key, path: ROUTES.API_KEYS },
   { label: "API Docs & Test", icon: BookOpen, path: ROUTES.API_DOCS },
   { label: "Transactions", icon: ArrowLeftRight, path: ROUTES.TRANSACTIONS },
+  { label: "Affiliate", icon: Gift, path: ROUTES.PARTNER },
 ];
 
 export function AppSidebar() {

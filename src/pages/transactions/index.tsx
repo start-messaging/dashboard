@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatINR } from "@/lib/utils";
+import { formatMicros } from "@/lib/money";
 import { DateRangePicker } from "@/components/date-range-picker";
 
 export function TransactionsPage() {
@@ -146,10 +146,10 @@ export function TransactionsPage() {
                     }`}
                   >
                     {tx.type === "debit" ? "-" : "+"}
-                    {formatINR(tx.amount)}
+                    {formatMicros(tx.amount)}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">
-                    {formatINR(tx.balanceAfter)}
+                    {formatMicros(tx.balanceAfter)}
                   </TableCell>
                 </TableRow>
               ))}

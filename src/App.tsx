@@ -14,6 +14,8 @@ import { TransactionsPage } from '@/pages/transactions';
 import { ApiKeysPage } from '@/pages/api-keys';
 import { ApiDocsPage } from '@/pages/api-docs';
 import { MessagesPage } from '@/pages/messages';
+import { PartnerPage } from '@/pages/partner';
+import { TemplatesPage } from '@/pages/templates';
 import { ROUTES } from '@/lib/constants';
 
 export default function App() {
@@ -38,6 +40,8 @@ export default function App() {
             <Route path={ROUTES.API_DOCS} element={<ApiDocsPage />} />
             <Route path={ROUTES.TRANSACTIONS} element={<TransactionsPage />} />
             <Route path={ROUTES.MESSAGES} element={<MessagesPage />} />
+            <Route path={ROUTES.TEMPLATES} element={<TemplatesPage />} />
+            <Route path={ROUTES.PARTNER} element={<PartnerPage />} />
           </Route>
         </Route>
       </Route>

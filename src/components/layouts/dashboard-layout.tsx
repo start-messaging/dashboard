@@ -12,7 +12,7 @@ import {
 import { AppSidebar } from "@/components/app-sidebar";
 import { AddMoneyDialog } from "@/components/add-money-dialog";
 import { useWallet } from "@/hooks/useWallet";
-import { formatINR } from "@/lib/utils";
+import { formatMicros } from "@/lib/money";
 import { loadRazorpayScript } from "@/lib/razorpay";
 
 function WalletBadge() {
@@ -24,7 +24,7 @@ function WalletBadge() {
       {isLoading ? (
         <Skeleton className="h-4 w-20" />
       ) : (
-        <span className="font-medium">{formatINR(balance)}</span>
+        <span className="font-medium">{formatMicros(balance)}</span>
       )}
     </div>
   );

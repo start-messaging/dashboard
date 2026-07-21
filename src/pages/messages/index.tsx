@@ -1,3 +1,4 @@
+import { formatMicros } from "@/lib/money";
 import { useState } from "react";
 import {
   ChevronLeft,
@@ -214,7 +215,7 @@ export function MessagesPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-medium text-xs">
-                      ₹{msg.costAmount}
+                      {formatMicros(msg.costAmount)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -320,7 +321,7 @@ function MessageDetailsDialog({
               <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 Cost
               </label>
-              <p className="text-sm font-semibold">₹{message.costAmount}</p>
+              <p className="text-sm font-semibold">{formatMicros(message.costAmount)}</p>
             </div>
           </div>
 
