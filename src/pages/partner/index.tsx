@@ -10,6 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -66,6 +68,7 @@ function StatCard(props: {
 
 function JoinCard() {
   const join = useJoinPartner();
+  const [upi, setUpi] = useState("");
   return (
     <Card className="mx-auto max-w-lg">
       <CardHeader>
@@ -76,10 +79,22 @@ function JoinCard() {
           the threshold.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        <div className="space-y-1">
+          <Label htmlFor="join-upi">Payout UPI id (optional)</Label>
+          <Input
+            id="join-upi"
+            placeholder="yourname@bank"
+            value={upi}
+            onChange={(e) => setUpi(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Where we'll send your earnings. You can add or change this later.
+          </p>
+        </div>
         <Button
           onClick={() =>
-            join.mutate(undefined, {
+            join.mutate(upi.trim() ? { upiId: upi.trim() } : undefined, {
               onSuccess: () =>
                 toast.success("Welcome to the affiliate program!"),
               onError: (e) => toast.error(getApiErrorMessage(e)),
@@ -212,6 +227,7 @@ export function PartnerPage() {
   const { data: stats, isLoading, isError } = usePartnerStats();
   const payout = useRequestPayout();
   const [copied, setCopied] = useState(false);
+  const [upi, setUpi] = useState("");
 
   if (isLoading) {
     return (
@@ -236,6 +252,10 @@ export function PartnerPage() {
 
   const el = stats.eligibility;
   const referralLink = `${window.location.origin}/sign-in?ref=${stats.profile.referralCode}`;
+  const savedUpi = String(
+    (stats.profile.payoutDetails as Record<string, unknown> | null)?.upiId ??
+      "",
+  );
 
   const reason = !el.withinWindow
     ? `Payouts open only between day ${stats.payoutWindow.startDay}–${stats.payoutWindow.endDay} of the month.`
@@ -314,12 +334,29 @@ export function PartnerPage() {
             {stats.payoutWindow.endDay} each month once you meet the thresholds.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-3">
+          <div className="space-y-1 sm:max-w-xs">
+            <Label htmlFor="payout-upi">Payout UPI id</Label>
+            <Input
+              id="payout-upi"
+              placeholder={savedUpi || "yourname@bank"}
+              value={upi}
+              onChange={(e) => setUpi(e.target.value)}
+            />
+            {savedUpi && !upi && (
+              <p className="text-xs text-muted-foreground">
+                On file: {savedUpi}
+              </p>
+            )}
+          </div>
           <Button
             disabled={!el.canRequestPayout || payout.isPending}
             onClick={() =>
-              payout.mutate(undefined, {
-                onSuccess: () => toast.success("Payout requested"),
+              payout.mutate(upi.trim() ? { upiId: upi.trim() } : undefined, {
+                onSuccess: () => {
+                  toast.success("Payout requested");
+                  setUpi("");
+                },
                 onError: (e) => toast.error(getApiErrorMessage(e)),
               })
             }

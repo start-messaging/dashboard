@@ -1,22 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
-import { googleLogin } from '@/apis/auth.api';
-import { getApiErrorMessage } from '@/lib/api-error';
-import { ROUTES } from '@/lib/constants';
-import { Chrome, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { googleLogin } from "@/apis/auth.api";
+import { getApiErrorMessage } from "@/lib/api-error";
+import { ROUTES } from "@/lib/constants";
+import { Chrome, Loader2 } from "lucide-react";
 
 export function SignInPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Affiliate attribution: a partner's link is /sign-in?ref=CODE.
+  const referralCode = searchParams.get("ref") ?? undefined;
   const buttonRef = useRef<HTMLDivElement>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(true);
 
   const handleCredentialResponse = useCallback(
     async (response: google.accounts.id.CredentialResponse) => {
       try {
-        const result = await googleLogin({ idToken: response.credential });
+        const result = await googleLogin({
+          idToken: response.credential,
+          referralCode,
+        });
         login(result.accessToken, result.user);
         navigate(
           result.user.hasCompletedOnboarding
@@ -28,11 +34,11 @@ export function SignInPage() {
         toast.error(getApiErrorMessage(error));
       }
     },
-    [login, navigate],
+    [login, navigate, referralCode],
   );
 
   const initializeGoogle = useCallback(() => {
-    if (!buttonRef.current || typeof google === 'undefined') return;
+    if (!buttonRef.current || typeof google === "undefined") return;
 
     try {
       google.accounts.id.initialize({
@@ -41,17 +47,17 @@ export function SignInPage() {
       });
 
       google.accounts.id.renderButton(buttonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        type: 'standard',
-        text: 'continue_with',
-        shape: 'rectangular',
-        width: window.innerWidth < 400 ? String(window.innerWidth - 64) : '380',
+        theme: "outline",
+        size: "large",
+        type: "standard",
+        text: "continue_with",
+        shape: "rectangular",
+        width: window.innerWidth < 400 ? String(window.innerWidth - 64) : "380",
       });
-      
+
       setIsGoogleLoading(false);
     } catch (err) {
-      console.error('Google initialization failed', err);
+      console.error("Google initialization failed", err);
     }
   }, [handleCredentialResponse]);
 
@@ -60,12 +66,13 @@ export function SignInPage() {
     let attempts = 0;
     const interval = setInterval(() => {
       attempts++;
-      if (typeof google !== 'undefined') {
+      if (typeof google !== "undefined") {
         initializeGoogle();
         clearInterval(interval);
-      } else if (attempts > 50) { // 5 seconds timeout
+      } else if (attempts > 50) {
+        // 5 seconds timeout
         clearInterval(interval);
-        toast.error('Failed to load Google Sign-in. Please refresh the page.');
+        toast.error("Failed to load Google Sign-in. Please refresh the page.");
       }
     }, 100);
 
@@ -89,9 +96,9 @@ export function SignInPage() {
               <span>Connecting to Google Identity...</span>
             </div>
           )}
-          <div 
-            ref={buttonRef} 
-            className={`w-full max-w-full flex justify-center transition-all duration-500 transform ${isGoogleLoading ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`} 
+          <div
+            ref={buttonRef}
+            className={`w-full max-w-full flex justify-center transition-all duration-500 transform ${isGoogleLoading ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"}`}
           />
         </div>
 
@@ -107,8 +114,6 @@ export function SignInPage() {
         </div>
       </div>
 
-
-
       <div className="group rounded-xl border bg-zinc-50/50 p-5 transition-all hover:bg-zinc-50 dark:bg-zinc-900/50 dark:hover:bg-zinc-900">
         <div className="flex items-start gap-4">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
@@ -117,8 +122,8 @@ export function SignInPage() {
           <div className="space-y-1">
             <p className="text-sm font-semibold">One-Tap Login</p>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              We use OAuth 2.0 to protect your account. Your password stays with Google, 
-              keeping your integration keys safe.
+              We use OAuth 2.0 to protect your account. Your password stays with
+              Google, keeping your integration keys safe.
             </p>
           </div>
         </div>
@@ -126,4 +131,3 @@ export function SignInPage() {
     </div>
   );
 }
-
