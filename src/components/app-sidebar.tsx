@@ -3,7 +3,6 @@ import {
   ArrowLeftRight,
   BookOpen,
   FileText,
-  Gift,
   Key,
   LayoutDashboard,
   LogOut,
@@ -42,7 +41,6 @@ const navItems = [
   { label: "API Keys", icon: Key, path: ROUTES.API_KEYS },
   { label: "API Docs & Test", icon: BookOpen, path: ROUTES.API_DOCS },
   { label: "Transactions", icon: ArrowLeftRight, path: ROUTES.TRANSACTIONS },
-  { label: "Affiliate", icon: Gift, path: ROUTES.PARTNER },
 ];
 
 export function AppSidebar() {

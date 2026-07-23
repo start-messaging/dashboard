@@ -1,4 +1,9 @@
-import { apiGet, apiPost, apiGetPaginated } from "./api-client";
+import {
+  partnerGet,
+  partnerPost,
+  partnerPatch,
+  partnerGetPaginated,
+} from "./partner-client";
 import type {
   PartnerProfile,
   PartnerStats,
@@ -9,21 +14,29 @@ import type {
   PaginatedResponse,
 } from "@/types";
 
-export function joinPartner(
-  payoutDetails?: PayoutDetailsInput,
-): Promise<PartnerProfile> {
-  return apiPost<PartnerProfile>("/partner/join", { payoutDetails });
+export function getPartnerStats(): Promise<PartnerStats> {
+  return partnerGet<PartnerStats>("/partner/stats");
 }
 
-export function getPartnerStats(): Promise<PartnerStats> {
-  return apiGet<PartnerStats>("/partner/stats");
+export function updatePayoutDetails(
+  payoutDetails: PayoutDetailsInput,
+): Promise<PartnerProfile> {
+  return partnerPatch<PartnerProfile>("/partner/payout-details", {
+    payoutDetails,
+  });
+}
+
+export function requestPayout(
+  payoutDetails?: PayoutDetailsInput,
+): Promise<Payout> {
+  return partnerPost<Payout>("/partner/payouts", { payoutDetails });
 }
 
 export function listReferrals(
   page: number,
   limit = 10,
 ): Promise<PaginatedResponse<Referral>> {
-  return apiGetPaginated<Referral>(
+  return partnerGetPaginated<Referral>(
     `/partner/referrals?page=${page}&limit=${limit}`,
   );
 }
@@ -32,22 +45,16 @@ export function listCommissions(
   page: number,
   limit = 10,
 ): Promise<PaginatedResponse<Commission>> {
-  return apiGetPaginated<Commission>(
+  return partnerGetPaginated<Commission>(
     `/partner/commissions?page=${page}&limit=${limit}`,
   );
-}
-
-export function requestPayout(
-  payoutDetails?: PayoutDetailsInput,
-): Promise<Payout> {
-  return apiPost<Payout>("/partner/payouts", { payoutDetails });
 }
 
 export function listPayouts(
   page: number,
   limit = 10,
 ): Promise<PaginatedResponse<Payout>> {
-  return apiGetPaginated<Payout>(
+  return partnerGetPaginated<Payout>(
     `/partner/payouts?page=${page}&limit=${limit}`,
   );
 }

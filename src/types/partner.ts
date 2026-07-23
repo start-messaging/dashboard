@@ -5,6 +5,9 @@ export type CommissionType = "earn" | "withdrawal" | "reversal" | "adjustment";
 
 export interface PartnerProfile {
   id: string;
+  email: string;
+  fullName: string;
+  mobileNumber: string | null;
   referralCode: string;
   status: PartnerStatus;
   commissionPercent: number;
@@ -13,6 +16,25 @@ export interface PartnerProfile {
   paidUsersCount: number;
   payoutDetails: Record<string, unknown> | null;
   createdAt: string;
+}
+
+/** Response of /partner/auth/register and /partner/auth/login. */
+export interface PartnerAuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  partner: PartnerProfile;
+}
+
+export interface PartnerRegisterInput {
+  email: string;
+  password: string;
+  fullName: string;
+  mobileNumber?: string;
+}
+
+export interface PartnerLoginInput {
+  email: string;
+  password: string;
 }
 
 export interface PartnerEligibility {

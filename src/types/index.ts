@@ -42,4 +42,7 @@ export type {
   Commission,
   Payout,
   PayoutDetailsInput,
+  PartnerAuthResponse,
+  PartnerRegisterInput,
+  PartnerLoginInput,
 } from "./partner";

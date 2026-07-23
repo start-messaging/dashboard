@@ -26,12 +26,12 @@ import { formatMicros } from "@/lib/money";
 import { getApiErrorMessage } from "@/lib/api-error";
 import {
   usePartnerStats,
-  useJoinPartner,
   useRequestPayout,
+  useUpdatePayoutDetails,
   useReferrals,
   useCommissions,
   usePayouts,
-} from "@/hooks/usePartner";
+} from "../hooks/use-partner-data";
 import type { PayoutStatus, ReferralStatus, CommissionType } from "@/types";
 
 const payoutTone: Record<PayoutStatus, string> = {
@@ -61,49 +61,6 @@ function StatCard(props: {
         {props.hint && (
           <p className="text-xs text-muted-foreground">{props.hint}</p>
         )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function JoinCard() {
-  const join = useJoinPartner();
-  const [upi, setUpi] = useState("");
-  return (
-    <Card className="mx-auto max-w-lg">
-      <CardHeader>
-        <CardTitle>Become an affiliate partner</CardTitle>
-        <CardDescription>
-          Earn commission on every top-up your referred customers make. Get a
-          unique referral link, track your earnings, and withdraw once you cross
-          the threshold.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="space-y-1">
-          <Label htmlFor="join-upi">Payout UPI id (optional)</Label>
-          <Input
-            id="join-upi"
-            placeholder="yourname@bank"
-            value={upi}
-            onChange={(e) => setUpi(e.target.value)}
-          />
-          <p className="text-xs text-muted-foreground">
-            Where we'll send your earnings. You can add or change this later.
-          </p>
-        </div>
-        <Button
-          onClick={() =>
-            join.mutate(upi.trim() ? { upiId: upi.trim() } : undefined, {
-              onSuccess: () =>
-                toast.success("Welcome to the affiliate program!"),
-              onError: (e) => toast.error(getApiErrorMessage(e)),
-            })
-          }
-          disabled={join.isPending}
-        >
-          {join.isPending ? "Joining..." : "Join the affiliate program"}
-        </Button>
       </CardContent>
     </Card>
   );
@@ -223,9 +180,10 @@ function PayoutsTable() {
   );
 }
 
-export function PartnerPage() {
-  const { data: stats, isLoading, isError } = usePartnerStats();
+export function PartnerDashboardPage() {
+  const { data: stats, isLoading, isError, refetch } = usePartnerStats();
   const payout = useRequestPayout();
+  const saveDetails = useUpdatePayoutDetails();
   const [copied, setCopied] = useState(false);
   const [upi, setUpi] = useState("");
 
@@ -245,7 +203,17 @@ export function PartnerPage() {
   if (isError || !stats) {
     return (
       <div className="p-4">
-        <JoinCard />
+        <Card className="mx-auto max-w-lg">
+          <CardHeader>
+            <CardTitle>Couldn't load your dashboard</CardTitle>
+            <CardDescription>
+              Something went wrong fetching your partner data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => void refetch()}>Try again</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -344,27 +312,45 @@ export function PartnerPage() {
               onChange={(e) => setUpi(e.target.value)}
             />
             {savedUpi && !upi && (
-              <p className="text-xs text-muted-foreground">
-                On file: {savedUpi}
-              </p>
+              <p className="text-xs text-muted-foreground">On file: {savedUpi}</p>
             )}
           </div>
-          <Button
-            disabled={!el.canRequestPayout || payout.isPending}
-            onClick={() =>
-              payout.mutate(upi.trim() ? { upiId: upi.trim() } : undefined, {
-                onSuccess: () => {
-                  toast.success("Payout requested");
-                  setUpi("");
-                },
-                onError: (e) => toast.error(getApiErrorMessage(e)),
-              })
-            }
-          >
-            {payout.isPending
-              ? "Requesting..."
-              : `Request payout (${formatMicros(stats.earningsBalanceMicros)})`}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              disabled={!el.canRequestPayout || payout.isPending}
+              onClick={() =>
+                payout.mutate(upi.trim() ? { upiId: upi.trim() } : undefined, {
+                  onSuccess: () => {
+                    toast.success("Payout requested");
+                    setUpi("");
+                  },
+                  onError: (e) => toast.error(getApiErrorMessage(e)),
+                })
+              }
+            >
+              {payout.isPending
+                ? "Requesting..."
+                : `Request payout (${formatMicros(stats.earningsBalanceMicros)})`}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={!upi.trim() || saveDetails.isPending}
+              onClick={() =>
+                saveDetails.mutate(
+                  { upiId: upi.trim() },
+                  {
+                    onSuccess: () => {
+                      toast.success("Payout details saved");
+                      setUpi("");
+                    },
+                    onError: (e) => toast.error(getApiErrorMessage(e)),
+                  },
+                )
+              }
+            >
+              {saveDetails.isPending ? "Saving..." : "Save UPI"}
+            </Button>
+          </div>
           {reason && <p className="text-sm text-muted-foreground">{reason}</p>}
         </CardContent>
       </Card>

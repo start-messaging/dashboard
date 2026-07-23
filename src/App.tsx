@@ -14,21 +14,27 @@ import { TransactionsPage } from '@/pages/transactions';
 import { ApiKeysPage } from '@/pages/api-keys';
 import { ApiDocsPage } from '@/pages/api-docs';
 import { MessagesPage } from '@/pages/messages';
-import { PartnerPage } from '@/pages/partner';
 import { TemplatesPage } from '@/pages/templates';
+import { PartnerAuthLayout } from '@/features/partner/layout/partner-auth-layout';
+import { PartnerLayout } from '@/features/partner/layout/partner-layout';
+import { PartnerGuestRoute } from '@/features/partner/guards/partner-guest-route';
+import { RequirePartnerAuth } from '@/features/partner/guards/require-partner-auth';
+import { PartnerLoginPage } from '@/features/partner/pages/partner-login';
+import { PartnerRegisterPage } from '@/features/partner/pages/partner-register';
+import { PartnerDashboardPage } from '@/features/partner/pages/partner-dashboard';
 import { ROUTES } from '@/lib/constants';
 
 export default function App() {
   return (
     <Routes>
-      {/* Public */}
+      {/* Public (customer) */}
       <Route element={<GuestRoute />}>
         <Route element={<AuthLayout />}>
           <Route path={ROUTES.SIGN_IN} element={<SignInPage />} />
         </Route>
       </Route>
 
-      {/* Protected */}
+      {/* Protected (customer) */}
       <Route element={<ProtectedRoute />}>
         <Route element={<RequireNotOnboarded />}>
           <Route path={ROUTES.ONBOARDING} element={<OnboardingPage />} />
@@ -41,8 +47,23 @@ export default function App() {
             <Route path={ROUTES.TRANSACTIONS} element={<TransactionsPage />} />
             <Route path={ROUTES.MESSAGES} element={<MessagesPage />} />
             <Route path={ROUTES.TEMPLATES} element={<TemplatesPage />} />
-            <Route path={ROUTES.PARTNER} element={<PartnerPage />} />
           </Route>
+        </Route>
+      </Route>
+
+      {/* Partner portal — its own auth + shell, independent of the customer app */}
+      <Route element={<PartnerGuestRoute />}>
+        <Route element={<PartnerAuthLayout />}>
+          <Route path={ROUTES.PARTNER_LOGIN} element={<PartnerLoginPage />} />
+          <Route
+            path={ROUTES.PARTNER_REGISTER}
+            element={<PartnerRegisterPage />}
+          />
+        </Route>
+      </Route>
+      <Route element={<RequirePartnerAuth />}>
+        <Route element={<PartnerLayout />}>
+          <Route path={ROUTES.PARTNER} element={<PartnerDashboardPage />} />
         </Route>
       </Route>
 

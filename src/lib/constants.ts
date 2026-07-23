@@ -1,5 +1,8 @@
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'sm_access_token',
+  // Partner portal keeps its OWN session, separate from the customer app.
+  PARTNER_ACCESS_TOKEN: 'sm_partner_access_token',
+  PARTNER_REFRESH_TOKEN: 'sm_partner_refresh_token',
 } as const;
 
 export const ROUTES = {
@@ -11,7 +14,10 @@ export const ROUTES = {
   API_KEYS: '/api-keys',
   API_DOCS: '/api-docs',
   TEMPLATES: '/templates',
+  // Partner portal — separate auth + shell from the customer app.
   PARTNER: '/partner',
+  PARTNER_LOGIN: '/partner/login',
+  PARTNER_REGISTER: '/partner/register',
 } as const;
 
 export const SUPPORT = {
