@@ -30,19 +30,3 @@ export type {
   CreateApiKeyResponse,
 } from "./api-keys";
 export type { Message, StatusHistoryEntry } from "./messages";
-export type {
-  PartnerStatus,
-  ReferralStatus,
-  PayoutStatus,
-  CommissionType,
-  PartnerProfile,
-  PartnerEligibility,
-  PartnerStats,
-  Referral,
-  Commission,
-  Payout,
-  PayoutDetailsInput,
-  PartnerAuthResponse,
-  PartnerRegisterInput,
-  PartnerLoginInput,
-} from "./partner";
