@@ -2,9 +2,11 @@ import { apiPost } from "./api-client";
 import type { CreateOrderResponse, VerifyPaymentPayload } from "@/types";
 
 export function createPaymentOrder(
-  amount: number,
+  amountMicros: number,
 ): Promise<CreateOrderResponse> {
-  return apiPost<CreateOrderResponse>("/payments/create-order", { amount });
+  return apiPost<CreateOrderResponse>("/payments/create-order", {
+    amountMicros,
+  });
 }
 
 export function verifyPayment(

@@ -8,7 +8,16 @@ export interface Wallet {
 export interface CreateOrderResponse {
   paymentId: string;
   gatewayOrderId: string;
-  amount: number;
+  /** Base top-up credited to the wallet, in micros. */
+  baseAmountMicros: number;
+  /** Razorpay platform fee passed to the customer, in micros. */
+  convenienceFeeMicros: number;
+  /** GST on the fee, in micros. */
+  gstMicros: number;
+  /** Total charged = base + fee + GST, in micros. */
+  totalAmountMicros: number;
+  /** Total charged in paise (smallest unit) for the Razorpay widget. */
+  gatewayAmount: number;
   currency: string;
   gatewayKey: string;
 }

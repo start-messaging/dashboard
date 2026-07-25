@@ -13,7 +13,7 @@ import { useDashboardStats, useDashboardTrends } from "@/hooks/useDashboardStats
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DateRangePicker } from "@/components/date-range-picker";
-import { formatINR } from "@/lib/utils";
+import { formatMicros } from "@/lib/money";
 import { 
   AreaChart, 
   Area, 
@@ -262,7 +262,7 @@ function StatsCard({
         ) : (
           <p className="text-2xl font-semibold">
             {isCurrency
-              ? formatINR(value ?? 0)
+              ? formatMicros(value ?? 0)
               : (value ?? 0).toLocaleString("en-IN")}
           </p>
         )}

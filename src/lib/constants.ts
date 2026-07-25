@@ -10,6 +10,7 @@ export const ROUTES = {
   MESSAGES: '/messages',
   API_KEYS: '/api-keys',
   API_DOCS: '/api-docs',
+  TEMPLATES: '/templates',
 } as const;
 
 export const SUPPORT = {
