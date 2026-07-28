@@ -1,7 +1,5 @@
 import { useState } from "react";
 import {
-  ChevronLeft,
-  ChevronRight,
   Inbox,
   Loader2,
   MessageSquare,
@@ -10,13 +8,14 @@ import {
   Eye,
   Filter,
 } from "lucide-react";
-import { useMessages } from "@/hooks/useMessages";
+import { useMessages, type MessageStatusFilter } from "@/hooks/useMessages";
 import { useApiKeys } from "@/hooks/useApiKeys";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
   SelectContent,
@@ -48,8 +47,8 @@ export function MessagesPage() {
     pagination,
     isLoading,
     isPlaceholderData,
-    goToNextPage,
-    goToPreviousPage,
+    setPage,
+    setLimit,
     dateRange,
     onDateRangeChange,
     checkStatus,
@@ -59,6 +58,8 @@ export function MessagesPage() {
     setStatus,
     apiKeyId,
     setApiKeyId,
+    hasActiveFilters,
+    resetFilters,
     refresh,
     isFetching,
   } = useMessages();
@@ -85,7 +86,12 @@ export function MessagesPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
-            <Select value={status} onValueChange={setStatus}>
+            <Select
+              value={status}
+              onValueChange={(value) =>
+                setStatus(value as MessageStatusFilter)
+              }
+            >
               <SelectTrigger className="h-8 w-[130px] border-none bg-transparent focus:ring-0">
                 <Filter className="mr-2 size-3.5 text-muted-foreground" />
                 <SelectValue placeholder="Status" />
@@ -123,15 +129,11 @@ export function MessagesPage() {
             onDateRangeChange={onDateRangeChange}
           />
 
-          {(dateRange || status !== "all" || apiKeyId !== "all") && (
+          {hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                onDateRangeChange(null);
-                setStatus("all");
-                setApiKeyId("all");
-              }}
+              onClick={() => resetFilters()}
               className="h-8 text-muted-foreground"
             >
               <X className="mr-1 size-4" />
@@ -234,33 +236,13 @@ export function MessagesPage() {
         )}
       </div>
 
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Page {pagination.page} of {pagination.totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToPreviousPage}
-              disabled={!pagination.hasPreviousPage || isPlaceholderData}
-            >
-              <ChevronLeft className="mr-1 size-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToNextPage}
-              disabled={!pagination.hasNextPage || isPlaceholderData}
-            >
-              Next
-              <ChevronRight className="ml-1 size-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        pagination={pagination}
+        onPageChange={setPage}
+        onLimitChange={setLimit}
+        isLoading={isPlaceholderData}
+        itemLabel="messages"
+      />
 
       <MessageDetailsDialog
         message={selectedMessage}

@@ -1,11 +1,7 @@
-import { 
-  ArrowLeftRight, 
-  ChevronLeft, 
-  ChevronRight, 
-  Inbox, 
-  X 
-} from "lucide-react";
+import { ArrowLeftRight, Inbox, X } from "lucide-react";
 import { useTransactions } from "@/hooks/useTransactions";
+import type { TransactionTypeFilter } from "@/hooks/useTransactions";
+import { Pagination } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,8 +27,9 @@ export function TransactionsPage() {
     dateRange,
     setDateRange,
     setPage,
-    goToNextPage,
-    goToPreviousPage,
+    setLimit,
+    hasActiveFilters,
+    resetFilters,
   } = useTransactions();
 
   return (
@@ -51,10 +48,7 @@ export function TransactionsPage() {
             <select
               className="h-9 rounded-md border bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               value={type}
-              onChange={(e) => {
-                setType(e.target.value);
-                setPage(1);
-              }}
+              onChange={(e) => setType(e.target.value as TransactionTypeFilter)}
             >
               <option value="all">All Types</option>
               <option value="credit">Credit</option>
@@ -71,19 +65,14 @@ export function TransactionsPage() {
               } else {
                 setDateRange(null);
               }
-              setPage(1);
             }}
           />
 
-          {(type !== "all" || dateRange) && (
+          {hasActiveFilters && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setType("all");
-                setDateRange(null);
-                setPage(1);
-              }}
+              onClick={() => resetFilters()}
               className="h-9 text-muted-foreground"
             >
               <X className="mr-1 size-4" />
@@ -158,33 +147,13 @@ export function TransactionsPage() {
         )}
       </div>
 
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Page {pagination.page} of {pagination.totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToPreviousPage}
-              disabled={!pagination.hasPreviousPage || isPlaceholderData}
-            >
-              <ChevronLeft className="mr-1 size-4" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToNextPage}
-              disabled={!pagination.hasNextPage || isPlaceholderData}
-            >
-              Next
-              <ChevronRight className="ml-1 size-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        pagination={pagination}
+        onPageChange={setPage}
+        onLimitChange={setLimit}
+        isLoading={isPlaceholderData}
+        itemLabel="transactions"
+      />
     </div>
   );
 }
