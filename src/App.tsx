@@ -14,9 +14,15 @@ import { TransactionsPage } from '@/pages/transactions';
 import { ApiKeysPage } from '@/pages/api-keys';
 import { ApiDocsPage } from '@/pages/api-docs';
 import { MessagesPage } from '@/pages/messages';
+import { useReferralCapture } from '@/hooks/useReferralCapture';
 import { ROUTES } from '@/lib/constants';
 
 export default function App() {
+  // Runs above the router outlet so a referral link lands anywhere in the app
+  // and still attributes — including straight onto the sign-in page, which is
+  // where most referral traffic actually arrives.
+  useReferralCapture();
+
   return (
     <Routes>
       {/* Public */}
