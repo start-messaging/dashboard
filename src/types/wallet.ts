@@ -5,10 +5,18 @@ export interface Wallet {
   currency: string;
 }
 
-export interface CreateOrderResponse {
+export interface FeeQuote {
+  /** What the wallet will be credited. */
+  amount: number;
+  /** Gateway surcharge added on top. Zero when the business absorbs it. */
+  convenienceFee: number;
+  /** What the card is actually charged. */
+  chargedAmount: number;
+}
+
+export interface CreateOrderResponse extends FeeQuote {
   paymentId: string;
   gatewayOrderId: string;
-  amount: number;
   currency: string;
   gatewayKey: string;
 }

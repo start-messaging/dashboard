@@ -8,6 +8,7 @@ export type {
 export type {
   Wallet,
   CreateOrderResponse,
+  FeeQuote,
   VerifyPaymentPayload,
   PaginationMeta,
   PaginatedResponse,

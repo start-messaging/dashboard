@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createPaymentOrder, verifyPayment } from "@/apis/payment.api";
+import { createPaymentOrder, getFeeQuote, verifyPayment } from "@/apis/payment.api";
+import type { FeeQuote } from "@/types";
 import { loadRazorpayScript, openRazorpayCheckout } from "@/lib/razorpay";
 import { useWallet } from "@/hooks/useWallet";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +32,29 @@ export function AddMoneyDialog() {
   const minAmount = import.meta.env.DEV ? 10 : 1000;
   const numericAmount = Number(amount);
   const isValid = numericAmount >= minAmount;
+
+  // Quoted by the server rather than worked out here, so what is shown is
+  // necessarily what will be charged. Debounced because it follows typing.
+  const [quote, setQuote] = useState<FeeQuote | null>(null);
+  useEffect(() => {
+    if (!isValid) {
+      setQuote(null);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(() => {
+      getFeeQuote(numericAmount)
+        .then((q) => !cancelled && setQuote(q))
+        // A failed quote must not block paying — the order returns the real
+        // breakdown, and Razorpay shows the total before anything is
+        // authorised. Hiding the estimate is better than blocking the top-up.
+        .catch(() => !cancelled && setQuote(null));
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [numericAmount, isValid]);
 
   const buttonLabel: Record<ButtonState, string> = {
     idle: "Proceed to Pay",
@@ -54,10 +78,16 @@ export function AddMoneyDialog() {
       openRazorpayCheckout({
         gatewayKey: order.gatewayKey,
         gatewayOrderId: order.gatewayOrderId,
-        amount: order.amount,
+        // The order was raised for the charged total, not the credited amount.
+        // Opening checkout with the latter disagrees with the order Razorpay
+        // holds the moment a convenience fee is in play.
+        amount: order.chargedAmount,
         currency: order.currency,
         name: "StartMessaging",
-        description: `Add ₹${numericAmount.toLocaleString("en-IN")} to wallet`,
+        description:
+          order.convenienceFee > 0
+            ? `₹${order.amount.toLocaleString("en-IN")} to wallet + ₹${order.convenienceFee.toLocaleString("en-IN")} fee`
+            : `Add ₹${numericAmount.toLocaleString("en-IN")} to wallet`,
         prefill: { 
           email: user?.email,
           name: `${user?.firstName} ${user?.lastName}`.trim(),
@@ -131,6 +161,31 @@ export function AddMoneyDialog() {
           />
           {amount && !isValid && (
             <p className="text-sm text-destructive">Minimum amount is ₹{minAmount.toLocaleString("en-IN")}</p>
+          )}
+
+          {quote && quote.convenienceFee > 0 && (
+            // Shown before the customer commits. A surcharge they only
+            // discover on their statement has not been disclosed.
+            <div className="space-y-1 rounded-lg border bg-muted/40 p-3 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Wallet credit</span>
+                <span className="tabular-nums">
+                  ₹{quote.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Payment processing fee</span>
+                <span className="tabular-nums">
+                  ₹{quote.convenienceFee.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex justify-between border-t pt-1 font-medium">
+                <span>You pay</span>
+                <span className="tabular-nums">
+                  ₹{quote.chargedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
           )}
         </div>
         <DialogFooter>
