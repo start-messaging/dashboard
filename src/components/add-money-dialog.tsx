@@ -20,6 +20,15 @@ import { useWallet } from "@/hooks/useWallet";
 import { useAuth } from "@/hooks/useAuth";
 import { getApiErrorMessage } from "@/lib/api-error";
 
+/** One formatter for every figure in the summary, so they cannot disagree. */
+function formatINR(value: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+  }).format(value);
+}
+
 type ButtonState = "idle" | "creating" | "paying" | "verifying";
 
 export function AddMoneyDialog() {
@@ -36,6 +45,13 @@ export function AddMoneyDialog() {
   // Quoted by the server rather than worked out here, so what is shown is
   // necessarily what will be charged. Debounced because it follows typing.
   const [quote, setQuote] = useState<FeeQuote | null>(null);
+
+  // Derived from the quote rather than hardcoded, so the label cannot claim a
+  // rate the server is not charging.
+  const feePercent =
+    quote && quote.convenienceFee > 0 && quote.amount > 0
+      ? Number(((quote.convenienceFee / quote.amount) * 100).toFixed(2))
+      : null;
   useEffect(() => {
     if (!isValid) {
       setQuote(null);
@@ -163,28 +179,50 @@ export function AddMoneyDialog() {
             <p className="text-sm text-destructive">Minimum amount is ₹{minAmount.toLocaleString("en-IN")}</p>
           )}
 
-          {quote && quote.convenienceFee > 0 && (
-            // Shown before the customer commits. A surcharge they only
-            // discover on their statement has not been disclosed.
-            <div className="space-y-1 rounded-lg border bg-muted/40 p-3 text-sm">
-              <div className="flex justify-between text-muted-foreground">
-                <span>Wallet credit</span>
-                <span className="tabular-nums">
-                  ₹{quote.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span>Payment processing fee</span>
-                <span className="tabular-nums">
-                  ₹{quote.convenienceFee.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between border-t pt-1 font-medium">
-                <span>You pay</span>
-                <span className="tabular-nums">
-                  ₹{quote.chargedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
+          {quote && (
+            // The order summary. Shown before the customer commits, because a
+            // surcharge they only meet on their statement has not been
+            // disclosed to them. Rendered whenever there is a valid amount, so
+            // the total is never a surprise even when no fee applies.
+            <div className="mt-4 rounded-lg border bg-muted/40 p-3">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Order summary
+              </p>
+
+              <dl className="space-y-1.5 text-sm">
+                <div className="flex items-baseline justify-between gap-4">
+                  <dt className="text-muted-foreground">Wallet credit</dt>
+                  <dd className="tabular-nums">{formatINR(quote.amount)}</dd>
+                </div>
+
+                {quote.convenienceFee > 0 && (
+                  <div className="flex items-baseline justify-between gap-4">
+                    <dt className="text-muted-foreground">
+                      Payment processing fee
+                      {feePercent !== null && (
+                        <span className="ml-1 text-xs">({feePercent}%)</span>
+                      )}
+                    </dt>
+                    <dd className="tabular-nums">
+                      {formatINR(quote.convenienceFee)}
+                    </dd>
+                  </div>
+                )}
+
+                <div className="flex items-baseline justify-between gap-4 border-t pt-1.5 font-semibold">
+                  <dt>Total payable</dt>
+                  <dd className="tabular-nums">
+                    {formatINR(quote.chargedAmount)}
+                  </dd>
+                </div>
+              </dl>
+
+              {quote.convenienceFee > 0 && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  The fee covers what the payment gateway charges. Your wallet
+                  is credited {formatINR(quote.amount)}.
+                </p>
+              )}
             </div>
           )}
         </div>
