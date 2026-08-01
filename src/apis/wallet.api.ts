@@ -1,5 +1,5 @@
 import { apiGet, apiGetPaginated } from "./api-client";
-import { buildQueryString } from "@/lib/query-string";
+import { buildQueryString, omitNeutral } from "@/lib/query-string";
 import type { Wallet, WalletTransaction, PaginatedResponse } from "@/types";
 
 export interface TransactionListParams {
@@ -21,6 +21,11 @@ export function getWalletTransactions(
   params: TransactionListParams,
 ): Promise<PaginatedResponse<WalletTransaction>> {
   return apiGetPaginated<WalletTransaction>(
-    `/wallet/transactions${buildQueryString(params)}`,
+    // `type` is a select; `search` is free text and must reach the API even
+    // when the user typed the same word the select uses for "no filter".
+    `/wallet/transactions${buildQueryString({
+      ...params,
+      type: omitNeutral(params.type),
+    })}`,
   );
 }

@@ -1,5 +1,5 @@
 import { apiGetPaginated, apiPost } from "./api-client";
-import { buildQueryString } from "@/lib/query-string";
+import { buildQueryString, omitNeutral } from "@/lib/query-string";
 import type { Message, PaginatedResponse } from "@/types";
 
 export interface MessageListParams {
@@ -16,7 +16,13 @@ export interface MessageListParams {
 export function getMessages(
   params: MessageListParams,
 ): Promise<PaginatedResponse<Message>> {
-  return apiGetPaginated<Message>(`/messages${buildQueryString(params)}`);
+  return apiGetPaginated<Message>(
+    `/messages${buildQueryString({
+      ...params,
+      status: omitNeutral(params.status),
+      apiKeyId: omitNeutral(params.apiKeyId),
+    })}`,
+  );
 }
 
 export function checkMessageStatus(id: string): Promise<Message> {
