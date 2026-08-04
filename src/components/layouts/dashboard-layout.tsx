@@ -50,7 +50,13 @@ export function DashboardLayout() {
               <AddMoneyDialog />
             </div>
           </header>
-          <div className="p-4 md:p-6">
+          {/*
+            Extra bottom padding so the floating support button cannot sit on
+            top of whatever ends the page. On list views that is the pagination
+            control, and a 56px button pinned bottom-right lands squarely on
+            "Next page".
+          */}
+          <div className="p-4 pb-24 md:p-6 md:pb-24">
             <Outlet />
           </div>
         </SidebarInset>

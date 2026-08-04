@@ -2,6 +2,11 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiPost } from "@/apis/api-client";
 
+/**
+ * Referral codes as the server issues them: 4-32 alphanumerics. Anything else
+ * in `?code=` belongs to some other feature and is left alone.
+ */
+
 /** Guards against re-posting the same code on every render or remount. */
 const SESSION_KEY = "sm_ref_seen";
 
@@ -28,8 +33,16 @@ export function useReferralCapture(): void {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const code = params.get("code") || params.get("ref");
-    if (!code) return;
+    const raw = params.get("code") ?? params.get("ref");
+    if (!raw) return;
+
+    // Shape-checked before the parameter is consumed. `?code=` is a generic
+    // enough name that something else will want it one day — an OAuth
+    // redirect, a discount link — and this hook runs on every route, so
+    // without the check it would swallow and strip that value on its way past.
+    // Matches the server's own normalisation in AttributionService.
+    if (!/^[A-Za-z0-9]{4,32}$/.test(raw)) return;
+    const code = raw;
 
     // Strip both parameters, so a failed request cannot leave the code
     // sitting in the URL to be shared or re-fired.
