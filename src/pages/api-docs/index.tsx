@@ -427,13 +427,18 @@ function ApiTester({ onApiKeyChange, initialApiKey }: { onApiKeyChange: (key: st
   // its own field below, and `expiry` is filled server-side from the account's
   // OTP validity, so both are excluded here.
   const selectedTemplate = templates.find((t) => t.id === templateId);
+  // Every {{variable}} the selected template uses, in the order it appears,
+  // except `otp` — which has its own dedicated field below. `expiry` IS shown
+  // (it was wrongly hidden before, so a 3-variable template like
+  // OTP_WITH_APPNAME_EXPIRY only surfaced 2 inputs); leaving it blank simply
+  // lets the server fill it from the account's OTP validity.
   const dynamicVars = useMemo(() => {
     if (!selectedTemplate) return [] as string[];
-    const keys = new Set<string>();
+    const keys: string[] = [];
     for (const m of selectedTemplate.body.matchAll(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g)) {
-      if (m[1] !== "otp" && m[1] !== "expiry") keys.add(m[1]);
+      if (m[1] !== "otp" && !keys.includes(m[1])) keys.push(m[1]);
     }
-    return [...keys];
+    return keys;
   }, [selectedTemplate]);
   
   const [isSending, setIsSending] = useState(false);
@@ -462,7 +467,17 @@ function ApiTester({ onApiKeyChange, initialApiKey }: { onApiKeyChange: (key: st
         },
         body: JSON.stringify({
           phoneNumber,
-          variables: { otp: otp || "123456", ...extraVars },
+          // Only the selected template's filled variables. Blank ones (e.g.
+          // expiry) are omitted so the server applies its default, and stale
+          // values from a previously selected template are never sent.
+          variables: {
+            otp: otp || "123456",
+            ...Object.fromEntries(
+              dynamicVars
+                .filter((k) => extraVars[k]?.trim())
+                .map((k) => [k, extraVars[k]]),
+            ),
+          },
           templateId
         }),
       });
@@ -565,9 +580,24 @@ function ApiTester({ onApiKeyChange, initialApiKey }: { onApiKeyChange: (key: st
             </div>
             {dynamicVars.map((key) => (
               <div key={key} className="space-y-2">
-                <label className="text-xs font-semibold capitalize">{key}</label>
+                <label className="text-xs font-semibold flex items-center justify-between">
+                  <span className="capitalize">{key}</span>
+                  {key === "expiry" && (
+                    <span className="text-[10px] text-muted-foreground font-normal italic">
+                      optional — auto-filled if blank
+                    </span>
+                  )}
+                </label>
                 <Input
-                  placeholder={key === "appName" ? "Your brand name" : key}
+                  placeholder={
+                    key === "appName"
+                      ? "Your brand name"
+                      : key === "expiry"
+                        ? "e.g. 10"
+                        : key === "apphash"
+                          ? "Android app signature hash"
+                          : key
+                  }
                   value={extraVars[key] || ""}
                   className="h-9"
                   onChange={(e) =>
