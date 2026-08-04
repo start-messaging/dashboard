@@ -315,7 +315,7 @@ function MessageDetailsDialog({
             </div>
           </div>
 
-          {message.failureReason && (
+          {message.failureReason && message.status === "failed" && (
             <div className="space-y-1">
               <label className="text-[10px] font-medium text-red-500 uppercase tracking-wider">
                 Failure Reason

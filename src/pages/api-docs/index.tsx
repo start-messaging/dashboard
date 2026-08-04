@@ -371,32 +371,13 @@ function TemplatesReference() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  <TableRow className="opacity-50 grayscale bg-muted/20">
-                    <TableCell>
-                      <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono">auth_verify_v2</code>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground italic">
-                      Coming Soon: Multi-variable template support...
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="secondary" className="text-[9px] uppercase">
-                        Queued
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow className="opacity-50 grayscale bg-muted/20">
-                    <TableCell>
-                      <code className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono">transaction_alert_v1</code>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground italic">
-                      Coming Soon: Transactional alert support...
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="secondary" className="text-[9px] uppercase">
-                        Queued
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
+                  {templates.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-xs text-muted-foreground py-6">
+                        No templates available yet. Contact support to have templates added to your account.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -437,7 +418,23 @@ function ApiTester({ onApiKeyChange, initialApiKey }: { onApiKeyChange: (key: st
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [templateId, setTemplateId] = useState("");
+  const [extraVars, setExtraVars] = useState<Record<string, string>>({});
   const [requestId, setRequestId] = useState("");
+
+  // The variables a template needs are whatever {{placeholders}} its body
+  // contains — read live from the selected template rather than hardcoded — so
+  // the sandbox asks for exactly the inputs that template renders. `otp` has
+  // its own field below, and `expiry` is filled server-side from the account's
+  // OTP validity, so both are excluded here.
+  const selectedTemplate = templates.find((t) => t.id === templateId);
+  const dynamicVars = useMemo(() => {
+    if (!selectedTemplate) return [] as string[];
+    const keys = new Set<string>();
+    for (const m of selectedTemplate.body.matchAll(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g)) {
+      if (m[1] !== "otp" && m[1] !== "expiry") keys.add(m[1]);
+    }
+    return [...keys];
+  }, [selectedTemplate]);
   
   const [isSending, setIsSending] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -465,7 +462,7 @@ function ApiTester({ onApiKeyChange, initialApiKey }: { onApiKeyChange: (key: st
         },
         body: JSON.stringify({
           phoneNumber,
-          variables: { otp: otp || "123456" },
+          variables: { otp: otp || "123456", ...extraVars },
           templateId
         }),
       });
@@ -566,6 +563,19 @@ function ApiTester({ onApiKeyChange, initialApiKey }: { onApiKeyChange: (key: st
                 ))}
               </select>
             </div>
+            {dynamicVars.map((key) => (
+              <div key={key} className="space-y-2">
+                <label className="text-xs font-semibold capitalize">{key}</label>
+                <Input
+                  placeholder={key === "appName" ? "Your brand name" : key}
+                  value={extraVars[key] || ""}
+                  className="h-9"
+                  onChange={(e) =>
+                    setExtraVars((prev) => ({ ...prev, [key]: e.target.value }))
+                  }
+                />
+              </div>
+            ))}
             <div className="space-y-2">
               <label className="text-xs font-semibold flex items-center justify-between">
                 <span>OTP Code (Mock)</span>
