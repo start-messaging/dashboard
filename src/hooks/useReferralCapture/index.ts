@@ -2,9 +2,6 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { apiPost } from "@/apis/api-client";
 
-/** Query parameter carrying a partner's referral code. */
-const REF_PARAM = "ref";
-
 /** Guards against re-posting the same code on every render or remount. */
 const SESSION_KEY = "sm_ref_seen";
 
@@ -31,12 +28,13 @@ export function useReferralCapture(): void {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const code = params.get(REF_PARAM);
+    const code = params.get("code") || params.get("ref");
     if (!code) return;
 
-    // Strip the parameter first, so a failed request cannot leave the code
+    // Strip both parameters, so a failed request cannot leave the code
     // sitting in the URL to be shared or re-fired.
-    params.delete(REF_PARAM);
+    params.delete("code");
+    params.delete("ref");
     const search = params.toString();
     navigate(
       { pathname: location.pathname, search: search ? `?${search}` : "" },

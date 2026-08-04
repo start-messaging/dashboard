@@ -115,7 +115,7 @@ function OnboardingSupportCta() {
   return (
     <div className="space-y-2 rounded-lg border border-border/60 bg-muted/30 p-3 text-center">
       <p className="text-xs text-muted-foreground">
-        Need help at any step? Reach support on WhatsApp.
+        Need help or submitted your details? Reach support on WhatsApp.
       </p>
       <a
         href={SUPPORT_WHATSAPP_URL}
@@ -124,7 +124,7 @@ function OnboardingSupportCta() {
         className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#20BD5A]"
       >
         <MessageCircle className="h-5 w-5" />
-        Chat with Support on WhatsApp
+        I've Submitted My KYC – Notify Team
       </a>
     </div>
   );

@@ -30,6 +30,8 @@ function WalletBadge() {
   );
 }
 
+import { WhatsAppFab } from "@/components/common/whatsapp-fab";
+
 export function DashboardLayout() {
   useEffect(() => {
     loadRazorpayScript().catch(console.error);
@@ -53,6 +55,8 @@ export function DashboardLayout() {
           </div>
         </SidebarInset>
       </SidebarProvider>
+      <WhatsAppFab />
     </TooltipProvider>
   );
 }
+
