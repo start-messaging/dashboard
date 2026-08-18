@@ -15,6 +15,7 @@ import { ApiKeysPage } from '@/pages/api-keys';
 import { ApiDocsPage } from '@/pages/api-docs';
 import { MessagesPage } from '@/pages/messages';
 import { useReferralCapture } from '@/hooks/useReferralCapture';
+import { usePostHogLeadCapture } from '@/hooks/usePostHogLeadCapture';
 import { ROUTES } from '@/lib/constants';
 
 export default function App() {
@@ -22,6 +23,9 @@ export default function App() {
   // and still attributes — including straight onto the sign-in page, which is
   // where most referral traffic actually arrives.
   useReferralCapture();
+  // Same reasoning for cold-email outreach links (?smref=<leadId>), which
+  // also land wherever the emailed URL pointed.
+  usePostHogLeadCapture();
 
   return (
     <Routes>

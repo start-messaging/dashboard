@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import * as Sentry from "@sentry/react";
 import { AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +24,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
+    // The fallback UI below promises "We've been notified" — this is what
+    // makes that true. Without a DSN (local dev, forks) nothing reports and
+    // the boundary behaves as it always has.
+    if (import.meta.env.VITE_SENTRY_DSN) {
+      Sentry.captureException(error);
+    }
   }
 
   private handleReset = () => {

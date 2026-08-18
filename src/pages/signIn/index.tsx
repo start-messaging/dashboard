@@ -17,7 +17,11 @@ export function SignInPage() {
     async (response: google.accounts.id.CredentialResponse) => {
       try {
         const result = await googleLogin({ idToken: response.credential });
-        login(result.accessToken, result.user);
+        // isNewUser is the server confirming the account was just created —
+        // it decides alias-vs-identify inside login (see useAuth).
+        login(result.accessToken, result.user, {
+          isNewAccount: result.isNewUser === true,
+        });
         navigate(
           result.user.hasCompletedOnboarding
             ? ROUTES.DASHBOARD
