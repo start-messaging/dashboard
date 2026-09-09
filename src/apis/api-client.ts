@@ -3,6 +3,7 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { API_BASE_URL } from "@/lib/api-base";
 import { STORAGE_KEYS } from "@/lib/constants";
 import type { PaginatedResponse } from "@/types";
 
@@ -16,7 +17,7 @@ declare module "axios" {
 }
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000",
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 

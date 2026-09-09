@@ -17,6 +17,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useUsageGuide } from "@/hooks/useApiKeys";
 import { getTemplates } from "@/apis/otp.api";
+import { API_BASE_URL } from "@/lib/api-base";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,8 +34,6 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import type { OtpTemplate } from "@/types";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 export function ApiDocsPage() {
   const { data: usageGuide, isLoading: usageLoading } = useUsageGuide();
