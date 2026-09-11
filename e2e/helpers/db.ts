@@ -24,7 +24,7 @@ export async function db(): Promise<Client> {
     throw new Error(
       `Refusing to run UI E2E tests against database "${name}". ` +
         `The suite truncates tables; point helpers/env.ts at the ` +
-        `sm_test database.`,
+        `startmessaging_test database.`,
     );
   }
 

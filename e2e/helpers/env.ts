@@ -7,7 +7,7 @@
  * environments (dev servers, the server repo's own e2e suite, the admin and
  * partner panels), so nothing in this suite may ever point at them.
  *
- * The database is no longer exclusive: `sm_test` is shared with the server API
+ * The database is no longer exclusive: `startmessaging_test` is shared with the server API
  * e2e suite and the admin-panel e2e suite. All three truncate it, so they
  * cannot run concurrently — run one suite at a time.
  */
@@ -27,7 +27,7 @@ export const DATABASE = {
    * on the same Postgres is the development database, holding real users,
    * messages and leads.
    */
-  name: 'sm_test',
+  name: 'startmessaging_test',
   username: 'postgres',
   password: 'postgres',
 } as const;
