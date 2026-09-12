@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import posthog from 'posthog-js';
+import * as Sentry from '@sentry/react';
 import { getMe } from '@/apis/user.api';
 import { logoutApi } from '@/apis/auth.api';
 import { ROUTES, STORAGE_KEYS } from '@/lib/constants';
@@ -10,6 +11,22 @@ const AUTH_QUERY_KEY = ['auth', 'me'] as const;
 
 function hasToken() {
   return !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+}
+
+/**
+ * The label a human reads in PostHog and Sentry instead of a UUID.
+ *
+ * `firstName`/`lastName` are non-optional on the User type but are free-text
+ * columns that can hold empty strings, so the join is trimmed and falls back to
+ * the email address — a person row labelled " " is worse than one labelled by
+ * address.
+ */
+function displayName(user: {
+  firstName: string;
+  lastName: string;
+  email: string;
+}): string {
+  return `${user.firstName} ${user.lastName}`.trim() || user.email;
 }
 
 export function useAuth() {
@@ -43,8 +60,20 @@ export function useAuth() {
         if (options?.isNewAccount) {
           posthog.alias(`user_${userData.id}`);
         }
-        posthog.identify(`user_${userData.id}`, { email: userData.email });
+        posthog.identify(`user_${userData.id}`, {
+          email: userData.email,
+          name: displayName(userData),
+        });
       }
+      // Sentry carries the same identity, so an error report says WHICH
+      // customer hit it rather than only where it happened. Deliberately
+      // outside the posthog guard: the two are independent, and off production
+      // Sentry was never initialised so this is a no-op.
+      Sentry.setUser({
+        id: userData.id,
+        email: userData.email,
+        username: displayName(userData),
+      });
     },
     [queryClient],
   );
@@ -61,6 +90,9 @@ export function useAuth() {
         // account's replay and event history.
         posthog.reset();
       }
+      // Same reason as posthog.reset(): on a shared browser the next person
+      // must not have this account's name attached to their crash reports.
+      Sentry.setUser(null);
       window.location.href = ROUTES.SIGN_IN;
     }
   }, [queryClient]);
