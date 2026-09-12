@@ -10,7 +10,7 @@
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "lint": "eslint .",
     "preview": "npm run build && wrangler dev",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "bash scripts/deploy-production.sh"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
