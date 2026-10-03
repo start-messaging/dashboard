@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
-import { test, expect } from '@playwright/test';
+import { test, expect, request as apiRequest } from '@playwright/test';
 import { resetDb, closeDb, sql } from './helpers/db';
+import { API_URL } from './helpers/env';
 import {
   createApiKeyViaApi,
   createOnboardedCustomer,
@@ -175,4 +176,84 @@ test('a key can be created already restricted', async ({ page }) => {
   expect(await allowedIpsOf(customer.id)).toEqual(['198.51.100.7']);
   const row = page.getByRole('row').filter({ hasText: 'Born Restricted' });
   await expect(row.getByText('198.51.100.7')).toBeVisible();
+});
+
+test('the allow list set in the UI is the one the guard enforces', async ({
+  page,
+}) => {
+  // The two specs above prove the UI writes `allowedIps`. That is not the same
+  // claim as "the restriction works": the column could be written and the key
+  // still authenticate from anywhere, which is exactly the shape the feature
+  // failed in before — a setting that looks applied and controls nothing. This
+  // drives the whole loop instead, through the real UI and then the real API
+  // with the real secret.
+  const customer = await createOnboardedCustomer();
+  await injectToken(page, customer.accessToken);
+
+  await page.goto('/api-keys');
+  await page.getByRole('button', { name: 'Create API Key' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Label').fill('Enforced Key');
+  await dialog.getByRole('button', { name: 'Create Key' }).click();
+  await expect(dialog.getByText('API Key Created')).toBeVisible();
+
+  // The one-time reveal is the only place the plaintext exists, so it is taken
+  // from the dialog rather than minted out of band — the key under test is the
+  // one a customer would be holding.
+  const secret = (await dialog.locator('code').textContent()) ?? '';
+  expect(secret).toMatch(/^sm_live_[0-9a-f]{40}$/);
+  await dialog.getByRole('button', { name: 'Done' }).click();
+  await expect(dialog).toBeHidden();
+
+  const api = await apiRequest.newContext({ baseURL: API_URL });
+  try {
+    const unrestricted = await api.get('/api-keys', {
+      headers: { 'x-api-key': secret },
+    });
+    expect(unrestricted.status(), await unrestricted.text()).toBe(200);
+
+    const row = page.getByRole('row').filter({ hasText: 'Enforced Key' });
+    await row.getByRole('button', { name: 'Edit IP restrictions' }).click();
+    await dialog.getByLabel('IP address').fill('203.0.113.5');
+    await dialog.getByRole('button', { name: 'Add', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Save Restrictions' }).click();
+    await expect(dialog).toBeHidden();
+
+    // Refused now, and refused as a bare 401: the guard's 403 is discarded by
+    // CombinedAuthGuard, so this is the answer the customer actually gets and
+    // the reason the dialog warns about it in those words.
+    const blocked = await api.get('/api-keys', {
+      headers: { 'x-api-key': secret },
+    });
+    expect(
+      blocked.status(),
+      'the key still worked from an address the UI had excluded',
+    ).toBe(401);
+
+    // Widened to the address the API sees this caller as — read from the same
+    // endpoint the dialog offers, so the UI's suggestion and the guard's check
+    // are proven to agree rather than assumed to.
+    const mine = await api.get('/api-keys/my-ip', {
+      headers: { Authorization: `Bearer ${customer.accessToken}` },
+    });
+    expect(mine.status(), await mine.text()).toBe(200);
+    const { ip } = ((await mine.json()) as { data: { ip: string } }).data;
+
+    await row.getByRole('button', { name: 'Edit IP restrictions' }).click();
+    await dialog.getByRole('button', { name: 'Remove 203.0.113.5' }).click();
+    await dialog.getByLabel('IP address').fill(ip);
+    await dialog.getByRole('button', { name: 'Add', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Save Restrictions' }).click();
+    await expect(dialog).toBeHidden();
+
+    const readmitted = await api.get('/api-keys', {
+      headers: { 'x-api-key': secret },
+    });
+    expect(
+      readmitted.status(),
+      `the key was refused from ${ip}, the address the UI was told to allow`,
+    ).toBe(200);
+  } finally {
+    await api.dispose();
+  }
 });
