@@ -30,6 +30,17 @@ export interface UsageGuideResponse {
   examples: Record<string, EndpointExample>;
 }
 
+export interface CreateApiKeyPayload {
+  label: string;
+  /**
+   * Omitted entirely when the key is unrestricted. An empty array would mean the
+   * same thing to the server — it normalises `[]` to NULL — but sending the
+   * field only when it carries addresses keeps "unrestricted" one spelling on
+   * the wire instead of two.
+   */
+  allowedIps?: string[];
+}
+
 export interface CreateApiKeyResponse {
   id: string;
   key: string;
@@ -40,4 +51,8 @@ export interface CreateApiKeyResponse {
   codeExamples: {
     sendOtp: LanguageExamples;
   };
+}
+
+export interface MyIpResponse {
+  ip: string;
 }
